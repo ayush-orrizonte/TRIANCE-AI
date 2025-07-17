@@ -1,0 +1,240 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "triance-admin-backend",
+    "description": "API Swagger for triance-admin-backend",
+    "version": "1.0.0"
+  },
+  "host": "localhost:5003",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/api/v1/admin/health": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Health Check API",
+        "description": "Endpoint to health check Admin Service",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/menus/add": {
+      "post": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "Create Menu",
+        "description": "Endpoint to create a new Menu",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "menuName": {
+                  "type": "string",
+                  "example": "Categories"
+                },
+                "menuDescription": {
+                  "type": "string",
+                  "example": "Menu to manage categories"
+                },
+                "menuOrder": {
+                  "type": "number",
+                  "example": 1
+                },
+                "routeUrl": {
+                  "type": "string",
+                  "example": "/categories"
+                },
+                "iconClass": {
+                  "type": "string",
+                  "example": "fa fa-menu"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/menus/update": {
+      "post": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "Update Menu",
+        "description": "Endpoint to update an existing Menu",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "menuId": {
+                  "type": "string",
+                  "example": "uuid-string"
+                },
+                "menuName": {
+                  "type": "string",
+                  "example": "Categories"
+                },
+                "menuDescription": {
+                  "type": "string",
+                  "example": "Menu to manage categories"
+                },
+                "menuOrder": {
+                  "type": "number",
+                  "example": 1
+                },
+                "routeUrl": {
+                  "type": "string",
+                  "example": "/categories"
+                },
+                "iconClass": {
+                  "type": "string",
+                  "example": "fa fa-menu"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/menus/list": {
+      "get": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "List Menus",
+        "description": "Endpoint to retrieve Menus List",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Filter menus by active status (1 for active, 0 for inactive)"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/menus/{menuId}": {
+      "get": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "Get Menu By ID",
+        "description": "Endpoint to retrieve a Menu by ID",
+        "parameters": [
+          {
+            "name": "menuId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Menu ID to fetch"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/menus/updateStatus": {
+      "post": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "Update Menu Status",
+        "description": "Endpoint to update Menu status",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "menuId": {
+                  "type": "string",
+                  "example": "uuid-string"
+                },
+                "status": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}
