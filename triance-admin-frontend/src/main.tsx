@@ -5,6 +5,8 @@ import App from "./App.tsx";
 import { BrowserRouter as Router } from "react-router-dom";
 
 import { createTheme, Loader, MantineProvider } from "@mantine/core";
+import "@mantine/core/styles.css";
+
 import {
   AuthProvider,
   LoaderProvider,
