@@ -1,0 +1,9 @@
+
+
+export enum UserStatus {
+  INACTIVE = 'INACTIVE',
+  ACTIVE = 'ACTIVE',
+  LOGGED_IN = 'LOGGED_IN',
+  LOGGED_OUT = 'LOGGED_OUT',
+  DELETED = 'DELETED'
+}
