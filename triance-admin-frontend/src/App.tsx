@@ -1,38 +1,91 @@
 import { useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import "./App.css";
-import UserManagement from "./pages/Admin/UserManagement/UserManagement";
-import RoleManagement from "./pages/Admin/RoleManagement/RoleManagement";
+import { Suspense, lazy } from "react";
+//import UserManagement from "./pages/Admin/UserManagement/UserManagement";
+//import RoleManagement from "./pages/Admin/RoleManagement/RoleManagement";
+
+const RoleManagement = lazy(
+  () => import("./pages/Admin/RoleManagement/RoleManagement")
+);
+
+const UserManagement = lazy(
+  () => import("./pages/Admin/UserManagement/UserManagement")
+);
+
 import SideBarMenu from "./components/common/SideBarMenu/SideBarMenu";
+import PublicRoutes from "./components/common/PublicRoutes/PublicRoutes";
+import Login from "./pages/Login/Login";
+import OtpLogin from "./pages/Login/OtpLogin/OtpLogin";
+import ForgetPassword from "./pages/Login/ForgetPassword/ForgetPassword";
+import ResetPassword from "./pages/Login/ResetPassword/ResetPassword";
+import LoadingFallback from "./components/common/LoadingFallback/LoadingFallback";
+import PrivateRoutes from "./components/common/PrivateRoutes/PrivateRoutes";
+import { useAuth } from "./hooks";
 
 function App() {
-  const location = useLocation();
+   const { userToken, isAuthenticated, logout } = useAuth();
+   const location = useLocation();
 
   useEffect(() => {
     console.log("Route changed to:", location.pathname);
   }, [location]);
 
   return (
-    <div className="flex flex-col md:flex-row w-full">
-    
-      <aside className="w-full md:w-[20%] hidden md:block">
-        <SideBarMenu />
-      </aside>
+    <Suspense fallback={<LoadingFallback />}>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row w-full">
       
-    
-      <main className="w-full md:w-[80%] p-4">
-        <Routes>
-          <Route path="/user-management" element={<UserManagement />} />
-          <Route path="/role-management" element={<RoleManagement />} />
-          
-        
-          <Route 
-            path="/" 
-            element={<UserManagement />} 
-          />
-        </Routes>
-      </main>
-    </div>
+          <aside className="w-full md:w-[20%] hidden md:block ">
+            <SideBarMenu />
+          </aside>
+       
+
+       <main
+          className={`w-full md:w-[80%] p-4 ${
+            isAuthenticated
+              ? "md:w-[80%] sm:w-[100%] xs:w-[100%] pt-20 sm:pt-16 md:pt-20"
+              : ""
+          } ${!location.state ? "" : ""}`}
+
+          // className={`w-full h-screen relative md:w-[80%] sm:w-[100%] xs:w-[100%] pt-20 sm:pt-16 md:pt-20  ${
+          //   !location.state ? "px-2 lg:px-4" : ""
+          // }`}
+        >
+          <Routes>
+            <Route
+              path="/"
+              element={<PublicRoutes element={<Navigate to="/login" />} />}
+            />
+            <Route
+              path="/login"
+              element={<PublicRoutes element={<Login />} />}
+            />
+
+            <Route
+              path="/otp-login"
+              element={<PublicRoutes element={<OtpLogin />} />}
+            />
+            <Route
+              path="/forget-password"
+              element={<PublicRoutes element={<ForgetPassword />} />}
+            />
+            <Route
+              path="/reset-password"
+              element={<PublicRoutes element={<ResetPassword />} />}
+            />
+            <Route
+              path="/role-management"
+              element={<PublicRoutes element={<RoleManagement />} />}
+            />
+            <Route
+              path="/user-management"
+              element={<PublicRoutes element={<UserManagement />} />}
+            />
+          </Routes>
+        </main>
+      </div>
+    </Suspense>
   );
 }
 

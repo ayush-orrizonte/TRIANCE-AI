@@ -163,7 +163,7 @@ const UserList = forwardRef<
           <img src={searchIcon} alt="search-icon" />
         </div>
         <div className="flex justify-end">
-          <Button style={{ background: "#990007" }} onClick={openDrawer}>
+        <Button style={{ background: "#5752de" }} onClick={openDrawer}>
             Add User
           </Button>
         </div>
