@@ -30,6 +30,12 @@ const SideBarMenu: React.FC = () => {
       access: "write",
       icon_class: "fas fa-user-shield", // Using Font Awesome classes
     },
+    {
+      menu_name: "Password Policy",
+      icon_class: "fa-solid fa-lock",
+      route_url: "/password-policy",
+      access: "Write",
+    },
   ];
 
   // Set initial selected menu

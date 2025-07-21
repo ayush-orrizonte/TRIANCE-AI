@@ -12,6 +12,9 @@ const RoleManagement = lazy(
 const UserManagement = lazy(
   () => import("./pages/Admin/UserManagement/UserManagement")
 );
+const PasswordPolicy = lazy(
+  () => import("./pages/Admin/PasswordPolicy/PasswordPolicy")
+);
 
 import SideBarMenu from "./components/common/SideBarMenu/SideBarMenu";
 import PublicRoutes from "./components/common/PublicRoutes/PublicRoutes";
@@ -20,12 +23,20 @@ import OtpLogin from "./pages/Login/OtpLogin/OtpLogin";
 import ForgetPassword from "./pages/Login/ForgetPassword/ForgetPassword";
 import ResetPassword from "./pages/Login/ResetPassword/ResetPassword";
 import LoadingFallback from "./components/common/LoadingFallback/LoadingFallback";
-import PrivateRoutes from "./components/common/PrivateRoutes/PrivateRoutes";
-import { useAuth } from "./hooks";
+//import PrivateRoutes from "./components/common/PrivateRoutes/PrivateRoutes";
+import { useAuth, useLoader, useLogger, useToast } from "./hooks";
+import { setupInterceptors } from "./api/axiosConfig";
+import { LogLevel } from "./enums";
 
 function App() {
-   const { userToken, isAuthenticated, logout } = useAuth();
-   const location = useLocation();
+  const { userToken, isAuthenticated, logout } = useAuth();
+  const location = useLocation();
+  const { showLoader, hideLoader } = useLoader();
+  const { showToast } = useToast();
+  const { setLogLevel, log } = useLogger();
+
+  setupInterceptors(userToken, logout, showLoader, hideLoader, showToast, log);
+  setLogLevel(LogLevel.INFO);
 
   useEffect(() => {
     console.log("Route changed to:", location.pathname);
@@ -35,13 +46,11 @@ function App() {
     <Suspense fallback={<LoadingFallback />}>
       {/* Header */}
       <div className="flex flex-col md:flex-row w-full">
-      
-          <aside className="w-full md:w-[20%] hidden md:block ">
-            <SideBarMenu />
-          </aside>
-       
+        <aside className="w-full md:w-[20%] hidden md:block ">
+          <SideBarMenu />
+        </aside>
 
-       <main
+        <main
           className={`w-full md:w-[80%] p-4 ${
             isAuthenticated
               ? "md:w-[80%] sm:w-[100%] xs:w-[100%] pt-20 sm:pt-16 md:pt-20"
@@ -81,6 +90,10 @@ function App() {
             <Route
               path="/user-management"
               element={<PublicRoutes element={<UserManagement />} />}
+            />
+            <Route
+              path="/password-policy"
+              element={<PublicRoutes element={<PasswordPolicy />} />}
             />
           </Routes>
         </main>
