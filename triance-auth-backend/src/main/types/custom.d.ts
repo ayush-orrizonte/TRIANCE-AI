@@ -1,6 +1,6 @@
 import { Status } from "../enums";
 import { Document } from "mongoose";
-import { UserStatus } from "../enums/status";
+import { UserStatus, AdminStatus } from "../enums/status";
 
 export interface IUser {
   userId: string;
@@ -26,25 +26,15 @@ export interface IPasswordPolicy {
   maximumInvalidAttempts: number;
 }
 
-export interface IAdmin extends Document {
-  userId: string;
-  userName: string;
-  displayName: string;
-  firstName: string;
-  lastName: string;
-  mobileNumber: number;
-  emailId: string;
-  gender: number;
-  dob: string;
-  roleId: string;
-  level: string;
+export interface IAdmin {
+  admin_id: number;
+  admin_name: string;
+  admin_email: string;
   password: string;
-  invalidAttempts: number;
-  status: Status.UserStatus;
-  lastLoggedIn: string;
-  dateCreated?: string;
-  dateUpdated?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  profilePicUrl?: string
+  profile_picture?: string;
+  lastLogin_time?: string;
+  invalidlogin_attempts: number;
+  status: AdminStatus;
+  role_id: string;
+  level?: string;
 }

@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { Request } from "../../types/express";
 import { HttpStatusCodes, LoggerUtils } from "../../triance-commons";
-import { IUser } from "../../types/custom";
+import { IAdmin } from "../../types/custom";
 import { ErrorCodes } from "../../enums";
 // import { GridDefaultOptions } from "../../enums/status";
 import usersRepository from "../repositories/usersRepository";
@@ -21,51 +21,37 @@ const usersController = {
         #swagger.tags = ['Users']
         #swagger.summary = 'Add User'
         #swagger.description = 'Endpoint to Add User'
-        #swagger.parameters['Authorization'] = {
-          in: 'header',
-          required: true,
-          type: 'string',
-          description: 'JWT token for authentication'
-        }
-        #swagger.parameters['Authorization'] = {
-                in: 'header',
-                required: true,
-                type: 'string',
-                description: 'JWT token for authentication'
-            }
+        
         
         #swagger.parameters['body'] = {
           in: 'body',
           required: true,
           schema: {
-            firstName: 'Rajesh',
-            lastName: 'Nayak',
-            emailId: 'rajeshnayak899@gmail.com',
-            mobileNumber: '8249834095',
-            dob: '1997-07-21',
-            gender: 1,
-            roleId: '2'
+            admin_name: 'Rajesh',
+            admin_email: 'rajeshnayak899@gmail.com',
+            role_id: 2,
+            level:'admin'
           }
         }
       */
 
       const plainToken = req.plainToken;
-      const user: IUser = req.body;
+      const user: IAdmin = req.body;
 
       logger.debug(
         `${logPrefix} :: Parsed parameters :: user :: ${JSON.stringify(user)}`
       );
 
-      const { error } = usersValidations.validateCreateUser(user);
-      if (error) {
-        const message = error.details?.[0]?.message || error.message;
-        logger.warn(`${logPrefix} :: Validation failed :: ${message}`);
-        res.status(HttpStatusCodes.BAD_REQUEST).send({
-          code: ErrorCodes.users.USER00000.errorCode,
-          message,
-        });
-        return;
-      }
+      // const { error } = usersValidations.validateCreateUser(user);
+      // if (error) {
+      //   const message = error.details?.[0]?.message || error.message;
+      //   logger.warn(`${logPrefix} :: Validation failed :: ${message}`);
+      //   res.status(HttpStatusCodes.BAD_REQUEST).send({
+      //     code: ErrorCodes.users.USER00000.errorCode,
+      //     message,
+      //   });
+      //   return;
+      // }
 
     //   const roleExists = await rolesRepository.existsByRoleId(user.role_id);
     //   if (!roleExists) {
@@ -89,9 +75,7 @@ const usersController = {
     //     return;
     //   }
 
-      user.created_by = plainToken?.id;
-      user.updated_by = plainToken?.id;
-
+     
       await usersService.createUser(user);
 
       logger.info(`${logPrefix} :: User created successfully`);

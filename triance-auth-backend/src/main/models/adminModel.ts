@@ -1,54 +1,29 @@
-import { Schema, model, Document, Model } from "mongoose";
-import { v4 as uuidv4 } from "uuid";
-import { MongoCollections, Status } from "../enums";
-import { MongoDBUtils } from "gm-commons";
+
+import { AdminStatus } from "../enums/status";
 import { IAdmin } from "../types/custom";
 
-export type IUserDocument = IAdmin;
+class Admin implements IAdmin {
+  admin_id: number;
+  admin_name: string;
+  admin_email: string;
+  password: string;
+  invalidlogin_attempts: number;
+  status: AdminStatus;
+  role_id: string;
+  level: string;
 
-const mongoDBUtils = MongoDBUtils.getInstance();
-
-const userSchema = new Schema<IAdmin>(
-  {
-    userId: { type: String, required: true, unique: true, default: uuidv4 },
-    userName: { type: String, required: true },
-    displayName: { type: String },
-    firstName: { type: String },
-    lastName: { type: String },
-    mobileNumber: { type: Number },
-    emailId: {
-      type: String,
-      required: true,
-      validate: {
-        validator: (v: string) => /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(v),
-        message: "Invalid email format",
-      },
-    },
-    gender: { type: Number },
-    dob: { type: String },
-    roleId: { type: String },
-    password: { type: String },
-    invalidAttempts: { type: Number },
-    status: {
-      type: Number,
-      required: true,
-      enum: Object.values(Status.UserStatus).filter(val => typeof val === "number"),
-    },
-    lastLoggedIn: { type: String },
-    dateCreated: { type: String },
-    dateUpdated: { type: String },
-    createdBy: { type: String },
-    updatedBy: { type: String },
-    profilePicUrl: { type: String },
-  },
-  {
-    timestamps: true,
+  constructor(admin: IAdmin) {
+    this.admin_id = admin.admin_id ;
+    this.admin_name = admin.admin_name;
+    this.admin_email = admin.admin_email;
+    this.password = admin.password;
+    this.invalidlogin_attempts = admin.invalidlogin_attempts || 0;
+    this.status = admin.status ?? AdminStatus.ACTIVE;
+    this.role_id = admin.role_id || "";
+    this.level = admin.level || "";
   }
-);
+}
 
-const userModel: Model<IAdmin> = mongoDBUtils.createModel<IAdmin>(
-  MongoCollections.USERS,
-  userSchema
-);
+export { Admin };
 
-export { userModel };
+

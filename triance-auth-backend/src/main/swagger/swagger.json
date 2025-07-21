@@ -11,13 +11,13 @@
     "http"
   ],
   "paths": {
-    "/api/v1/auth/teachers/login": {
+    "/api/v1/auth/users/login": {
       "post": {
         "tags": [
-          "Teachers"
+          "Users"
         ],
-        "summary": "Teacher Login",
-        "description": "Endpoint for Teacher Login",
+        "summary": "User Login",
+        "description": "Endpoint for User Login",
         "parameters": [
           {
             "name": "body",
@@ -28,7 +28,7 @@
               "properties": {
                 "emailId": {
                   "type": "string",
-                  "example": "teacher@example.com"
+                  "example": "User@example.com"
                 },
                 "password": {
                   "type": "string",
@@ -45,13 +45,13 @@
         }
       }
     },
-    "/api/v1/auth/teachers/logout": {
+    "/api/v1/auth/users/logout": {
       "post": {
         "tags": [
-          "Teachers"
+          "Users"
         ],
-        "summary": "Logout Teacher",
-        "description": "Endpoint to Logout Teachers",
+        "summary": "Logout User",
+        "description": "Endpoint to Logout Users",
         "parameters": [
           {
             "name": "Authorization",
@@ -68,7 +68,7 @@
         }
       }
     },
-    "/api/v1/auth/teachers/requestResetPassword": {
+    "/api/v1/auth/users/requestResetPassword": {
       "post": {
         "tags": [
           "Teachers"
@@ -98,7 +98,7 @@
         }
       }
     },
-    "/api/v1/auth/teachers/resetPassword": {
+    "/api/v1/auth/users/resetPassword": {
       "post": {
         "tags": [
           "Teachers"
@@ -136,33 +136,12 @@
         }
       }
     },
-    "/api/v1/auth/teachers/download-apk": {
+    "/api/v1/auth/users/download-apk": {
       "get": {
         "description": "",
         "responses": {
           "500": {
             "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/admins/validateToken": {
-      "get": {
-        "tags": [
-          "Admin"
-        ],
-        "summary": "Validate Token",
-        "description": "Endpoint to validate Admin JWT Token",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
           }
         }
       }
@@ -182,9 +161,9 @@
             "schema": {
               "type": "object",
               "properties": {
-                "emailId": {
+                "email": {
                   "type": "string",
-                  "example": "admin@gmail.com"
+                  "example": "admin@example.com"
                 },
                 "password": {
                   "type": "string",
@@ -206,8 +185,8 @@
         "tags": [
           "Admin"
         ],
-        "summary": "Admin Logout",
-        "description": "Endpoint for Admin Logout",
+        "summary": "Logout Admin",
+        "description": "Endpoint to Logout Admin",
         "parameters": [
           {
             "name": "Authorization",
@@ -229,8 +208,8 @@
         "tags": [
           "Admin"
         ],
-        "summary": "Admin Request Reset Password",
-        "description": "Endpoint for Admin to request password reset",
+        "summary": "Request Reset Password",
+        "description": "Endpoint for Admin Reset Password Request",
         "parameters": [
           {
             "name": "body",
@@ -239,7 +218,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "emailId": {
+                "email": {
                   "type": "string",
                   "example": "admin@example.com"
                 }
@@ -259,8 +238,8 @@
         "tags": [
           "Admin"
         ],
-        "summary": "Reset Password",
-        "description": "Endpoint for Admin to reset password using a transaction ID",
+        "summary": "Reset Admin Password",
+        "description": "Endpoint for Admin Password Reset",
         "parameters": [
           {
             "name": "body",

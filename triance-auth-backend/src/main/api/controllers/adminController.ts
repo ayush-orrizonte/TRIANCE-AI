@@ -1,73 +1,34 @@
 import { Response } from "express";
 import { Request } from "../../types/express";
-import jwt from "jsonwebtoken";
-import { authConfig, environment } from "../../config";
 import {
+  EjsUtils,
   HttpStatusCodes,
   LoggerUtils,
-  RedisUtils,
   MailerUtils,
-  EjsUtils,
-} from "gm-commons";
-import { UserStatus } from "../../enums/status";
+  RedisUtils,
+} from "../../triance-commons";
+import { ErrorCodes, RedisKeys } from "../../enums";
 import { adminService } from "../services";
-import { v4 as uuidv4 } from "uuid";
+import { environment } from "../../config/environment";
 import { encDecHelper, redisKeysFormatter } from "../../helpers";
-import { IAdmin } from "../../types/custom";
 import bcrypt from "bcryptjs";
-import { adminRepository } from "../repositories";
-import { adminValidations } from "../../validations";
-import { RedisKeys, ErrorCodes } from "../../enums";
+import adminValidations from "../../validations/adminValidations";
+import { AdminStatus } from "../../enums/status";
+import path from "path";
 
 const logger = LoggerUtils.getLogger("adminController");
 const mailerUtils = MailerUtils.getInstance();
 const redisUtils = RedisUtils.getInstance();
 
 const adminController = {
-  validateToken: async (req: Request, res: Response): Promise<void> => {
-    const logPrefix = `adminController :: validateToken`;
-    const token = req.header("authorization");
-
-    try {
-      logger.info(`${logPrefix} :: Request received`);
-
-      /*
-        #swagger.tags = ['Admin']
-        #swagger.summary = 'Validate Token'
-        #swagger.description = 'Endpoint to validate Admin JWT Token'
-      */
-
-      if (!token) {
-        logger.warn(`${logPrefix} :: No token provided`);
-        res
-          .status(HttpStatusCodes.UNAUTHORIZED)
-          .send(JSON.parse(ErrorCodes.Admin.ADMIN010));
-        return;
-      }
-
-      const decodedToken = jwt.verify(token, environment.secretKey);
-
-      res.status(HttpStatusCodes.OK).send({
-        data: decodedToken,
-        message: "Token validated successfully",
-      });
-    } catch (error) {
-      logger.error(`${logPrefix} :: error :: ${error.message}`);
-      res
-        .status(HttpStatusCodes.INTERNAL_SERVER_ERROR)
-        .send(JSON.parse(ErrorCodes.Admin.ADMIN000));
-    }
-  },
-
+  
   login: async (req: Request, res: Response): Promise<void> => {
-    const loginRequest: { emailId: string; password: string } = req.body;
-    const logPrefix = `adminLogin :: loginRequest :: ${JSON.stringify(
-      loginRequest
-    )}`;
-
+    const loginRequest: { email: string; password: string } = req.body;
+    const logPrefix = `login :: ${JSON.stringify(loginRequest)}`;
+    
     try {
-      logger.info(`${logPrefix} :: Request received`);
-      /*  
+      logger.info(logPrefix);
+      /*
                 #swagger.tags = ['Admin']
                 #swagger.summary = 'Admin Login'
                 #swagger.description = 'Endpoint for Admin Login'
@@ -75,111 +36,110 @@ const adminController = {
                     in: 'body',
                     required: true,
                     schema: {
-                        emailId: 'admin@gmail.com',
+                        email: 'admin@example.com',
                         password: 'yourPassword'
                     }
-                }  
-            */
+                }
+      */
+      // const { error } = await adminValidations.validateLoginDetails(req.body);
+      // if (error) {
+      //   const message = error.details?.[0]?.message || error.message;
+      //   res.status(HttpStatusCodes.BAD_REQUEST).json({
+      //     code: ErrorCodes.Admin.ADMIN000,
+      //     message
+      //   });
+      //   return;
+      // }
 
-      const { error } = await adminValidations.validateLoginDetails(req.body);
-      if (error) {
-        res.status(HttpStatusCodes.BAD_REQUEST).send({
-          code: ErrorCodes.Admin.ADMIN000,
-          message: error.details?.[0].message || error.message,
+      const admin = await adminService.getAdminByEmail(loginRequest.email);
+      if (!admin) {
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+          code: ErrorCodes.Admin.ADMIN001,
+          message: "Invalid Admin",
         });
         return;
       }
 
-      const admin = await adminService.getAdminByEmail(loginRequest.emailId);
-      if (!admin) {
-        res
-          .status(HttpStatusCodes.UNAUTHORIZED)
-          .send(JSON.parse(ErrorCodes.Admin.ADMIN001));
-        return;
-      }
-
-      if (environment.decryptSensitiveData) {
-        loginRequest.password = encDecHelper.decryptPayload(
-          loginRequest.password
-        );
-      }
+      // if (environment.decryptSensitiveData) {
+      //   loginRequest.password = encDecHelper.decryptPayload(loginRequest.password);
+      // }
 
       const passwordPolicy = await adminService.getPasswordPolicy();
-
       const isPasswordValid = await bcrypt.compare(
         loginRequest.password,
         admin.password
       );
 
-      if (isPasswordValid) {
-        const payload = {
-          id: admin.userId,
-          name: admin.userName,
-          email: admin.emailId,
-          roleId: admin.roleId,
-          level: admin.level,
-        };
-
-        const tokenDetails = await adminService.generateLoginToken(payload);
-
-        await adminService.updateAdminStatus(
-          UserStatus.LOGGED_IN,
-          admin.emailId,
-          admin.invalidAttempts !== 0 &&
-            admin.invalidAttempts < passwordPolicy.maximumInvalidAttempts
-        );
-
-        res.status(HttpStatusCodes.OK).send({
-          data: tokenDetails,
-          message: "Logged in Successfully",
-        });
-      } else {
-        if (admin.invalidAttempts < passwordPolicy.maximumInvalidAttempts) {
-          await adminService.updateInvalidLoginAttempts(
-            admin.emailId,
-            admin.userId
-          );
-          res
-            .status(HttpStatusCodes.BAD_REQUEST)
-            .send(JSON.parse(ErrorCodes.Admin.ADMIN001));
+      if (!isPasswordValid) {
+        if (admin.invalidlogin_attempts < passwordPolicy.maximumInvalidAttempts) {
+          await adminService.updateInvalidLoginAttempts(admin.admin_email, admin.admin_id);
+          res.status(HttpStatusCodes.BAD_REQUEST).json({
+            code: ErrorCodes.Admin.ADMIN001,
+            message: "Invalid Credentials",
+          });
+          return;
         } else {
           await adminService.updateAdminStatus(
-            UserStatus.INACTIVE,
-            admin.emailId
+            AdminStatus.INACTIVE,
+            admin.admin_email
           );
-
           const emailTemplateHtml = await EjsUtils.generateHtml(
             "src/main/views/generic_template.ejs",
             {
-              name: admin.userName,
-              body: "Your admin account has been deactivated!",
-              footer: "© 2025 GuruMitra. All Rights Reserved.",
+              name: admin.admin_name,
+              body: "Your admin account has been deactivated due to multiple failed login attempts!",
+              footer: "© 2025 Triance Ai. All Rights Reserved.",
             }
           );
-
           mailerUtils.sendEmail(
-            "Guru Mitra | Admin Account Deactivated",
+            "Admin Account Deactivated",
             emailTemplateHtml,
-            admin.emailId
+            admin.admin_email
           );
-
-          res
-            .status(HttpStatusCodes.BAD_REQUEST)
-            .send(JSON.parse(ErrorCodes.Admin.ADMIN003));
+          res.status(HttpStatusCodes.BAD_REQUEST).json({
+            code: ErrorCodes.Admin.ADMIN003,
+            message: "Account locked due to multiple failed attempts",
+          });
+          return;
         }
       }
+
+      const payload = {
+        id: admin.admin_id,
+        name: admin.admin_name,
+        email: admin.admin_email,
+        roleId: String(admin.role_id),
+        level: admin.level !== undefined ? String(admin.level) : "",
+        adminEmail: admin.admin_email,
+      };
+
+      const tokenDetails = await adminService.generateLoginToken(payload);
+      await adminService.resetInvalidLoginAttempts(admin.admin_email, admin.admin_id);
+      await adminService.updateAdminStatus(
+        AdminStatus.LOGGED_IN,
+        admin.admin_email,
+        admin.invalidlogin_attempts > 0
+      );
+
+      res.status(HttpStatusCodes.OK).json({
+        data: tokenDetails,
+        message: "Admin login successful"
+      });
+      
     } catch (error) {
-      logger.error(`${logPrefix} :: error :: ${error.message}`);
-      res
-        .status(HttpStatusCodes.INTERNAL_SERVER_ERROR)
-        .send(JSON.parse(ErrorCodes.Admin.ADMIN000));
+      logger.error(`${logPrefix} :: ${error.message}`);
+      res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json(
+        JSON.parse(ErrorCodes.Admin.ADMIN000)
+      );
     }
   },
+
   logout: async (req: Request, res: Response): Promise<void> => {
-    /*  
+    try {
+      /*  
             #swagger.tags = ['Admin']
-            #swagger.summary = 'Admin Logout'
-            #swagger.description = 'Endpoint for Admin Logout'
+            #swagger.summary = 'Logout Admin'
+            #swagger.description = 'Endpoint to Logout Admin'
             #swagger.parameters['Authorization'] = {
                 in: 'header',
                 required: true,
@@ -187,338 +147,178 @@ const adminController = {
                 description: 'JWT token for authentication'
             }
         */
-
-    const logPrefix = `adminController :: logout`;
-
-    try {
       const adminEmail = req.plainToken?.email;
       const adminId = req.plainToken?.id;
 
       if (adminEmail) {
-        await adminService.updateAdminStatus(UserStatus.LOGGED_OUT, adminEmail);
+        await adminService.updateAdminStatus(AdminStatus.LOGGED_OUT, adminEmail);
       }
 
       await adminService.clearCacheForAdmin(adminId, adminEmail);
 
-      res.status(HttpStatusCodes.OK).send({
+      res.status(HttpStatusCodes.OK).json({
         data: null,
-        message: "Logged out Successfully",
+        message: "Admin logout successful"
       });
     } catch (error) {
-      logger.error(`${logPrefix} :: ${error.message} :: ${error}`);
-      res
-        .status(HttpStatusCodes.INTERNAL_SERVER_ERROR)
-        .send(JSON.parse(ErrorCodes.Admin.ADMIN000));
+      logger.error(`logout :: ${error.message}`);
+      res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json(
+        JSON.parse(ErrorCodes.Admin.ADMIN000)
+      );
     }
   },
+
   requestResetPassword: async (req: Request, res: Response): Promise<void> => {
-    const resetRequestDetails: { emailId: string } = req.body;
-    const logPrefix = `adminController :: requestResetPassword :: resetRequestDetails :: ${JSON.stringify(
-      resetRequestDetails
-    )}`;
-
+    const { email } = req.body;
     try {
-      logger.info(logPrefix);
-
+      logger.info(`requestResetPassword :: ${email}`);
+      
       /*
-            #swagger.tags = ['Admin']
-            #swagger.summary = 'Admin Request Reset Password'
-            #swagger.description = 'Endpoint for Admin to request password reset'
-            #swagger.parameters['body'] = {
-                in: 'body',
-                required: true,
-                schema: {
-                    emailId: 'admin@example.com',
+                #swagger.tags = ['Admin']
+                #swagger.summary = 'Request Reset Password'
+                #swagger.description = 'Endpoint for Admin Reset Password Request'
+                #swagger.parameters['body'] = {
+                    in: 'body',
+                    required: true,
+                    schema: {
+                        email: 'admin@example.com',
+                    }
                 }
-            }
-          */
+      */
+ 
+      // const { error } = await adminValidations.validateRequestPasswordDetails({ email });
+      // if (error) {
+      //   const message = error.details?.[0]?.message || error.message;
+      //   res.status(HttpStatusCodes.BAD_REQUEST).json({
+      //     code: ErrorCodes.Admin.ADMIN000,
+      //     message
+      //   });
+      //   return;
+      // }
 
-      const { error } = await adminValidations.validatRequestPasswordDetails(
-        resetRequestDetails
-      );
-      if (error) {
-        const errMsg = error.details ? error.details[0].message : error.message;
-
-        logger.warn(`${logPrefix} :: bad request :: ${errMsg}`);
-
-        res.status(HttpStatusCodes.BAD_REQUEST).send({
-          code: "ADMIN000",
-          message: errMsg,
-        });
-        return;
+      const admin = await adminService.getAdminByEmail(email);
+      if (admin) {
+        await adminService.getRequestResetPassword(admin);
       }
 
-      const admin = await adminService.getAdminByEmail(
-        resetRequestDetails.emailId
-      );
-      if (!admin) {
-        logger.warn(`${logPrefix} :: Admin not found`);
-        res.status(HttpStatusCodes.NOT_FOUND).send({
-          code: "ADMIN001",
-          message: "Admin not found with the provided email",
-        });
-        return;
-      }
-
-      await adminService.getRequestResetPassword(admin);
-
-      res.status(HttpStatusCodes.OK).send({
+      res.status(HttpStatusCodes.OK).json({
         data: null,
-        message: "Password reset requested successfully",
+        message: "Password reset instructions sent"
       });
     } catch (error) {
-      logger.error(`${logPrefix} :: ${error.message} :: ${error}`);
-      res
-        .status(HttpStatusCodes.INTERNAL_SERVER_ERROR)
-        .send(JSON.parse(ErrorCodes.Admin.ADMIN000));
+      logger.error(`requestResetPassword :: ${error.message}`);
+      res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json(
+        JSON.parse(ErrorCodes.Admin.ADMIN000)
+      );
     }
   },
 
   resetPassword: async (req: Request, res: Response): Promise<void> => {
-    const resetPasswordRequest: {
-      txnId: string;
-      newPassword: string;
-      confirmPassword: string;
-    } = req.body;
-
-    const logPrefix = `adminController :: resetPassword :: resetPasswordRequest :: ${JSON.stringify(
-      resetPasswordRequest
-    )}`;
-
+    const resetData = req.body;
     try {
+      logger.info(`resetPassword :: txnId: ${resetData.txnId}`);
+      
       /*
-            #swagger.tags = ['Admin']
-            #swagger.summary = 'Reset Password'
-            #swagger.description = 'Endpoint for Admin to reset password using a transaction ID'
-            #swagger.parameters['body'] = {
-                in: 'body',
-                required: true,
-                schema: {
-                    txnId: 'uuid',
-                    newPassword: 'encryptedPasswordHash',
-                    confirmPassword: 'encryptedPasswordHash'
+                #swagger.tags = ['Admin']
+                #swagger.summary = 'Reset Admin Password'
+                #swagger.description = 'Endpoint for Admin Password Reset'
+                #swagger.parameters['body'] = {
+                    in: 'body',
+                    required: true,
+                    schema: {
+                        txnId: 'uuid',
+                        newPassword: 'encryptedPasswordHash',
+                        confirmPassword: 'encryptedPasswordHash'
+                    }
                 }
-            }
-          */
-
-      const { error } = await adminValidations.validateResetPassword(
-        resetPasswordRequest
-      );
+      */
+      
+      const { error } = await adminValidations.validateResetPassword(resetData);
       if (error) {
-        const errMsg = error.details ? error.details[0].message : error.message;
-        logger.warn(`${logPrefix} :: bad request :: ${errMsg}`);
-        res.status(HttpStatusCodes.BAD_REQUEST).send({
-          code: "ADMIN000",
-          message: errMsg,
+        const message = error.details?.[0]?.message || error.message;
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+          code: ErrorCodes.Admin.ADMIN000,
+          message: "Internal server error",
         });
         return;
       }
 
       if (environment.decryptSensitiveData) {
-        resetPasswordRequest.newPassword = encDecHelper.decryptPayload(
-          resetPasswordRequest.newPassword
-        );
-        resetPasswordRequest.confirmPassword = encDecHelper.decryptPayload(
-          resetPasswordRequest.confirmPassword
-        );
+        resetData.newPassword = encDecHelper.decryptPayload(resetData.newPassword);
+        resetData.confirmPassword = encDecHelper.decryptPayload(resetData.confirmPassword);
       }
 
-      if (
-        resetPasswordRequest.newPassword !==
-        resetPasswordRequest.confirmPassword
-      ) {
-        res
-          .status(HttpStatusCodes.BAD_REQUEST)
-          .send(JSON.parse(ErrorCodes.Admin.ADMIN004));
+      if (resetData.newPassword !== resetData.confirmPassword) {
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+          code: ErrorCodes.Admin.ADMIN004,
+          message: "Passwords do not match",
+        });
         return;
       }
 
-      
-
-      const requestPasswordDetails = await adminService.getResetPasswordDetails(
-        resetPasswordRequest.txnId
-      );
-      if (!requestPasswordDetails) {
-        res
-          .status(HttpStatusCodes.BAD_REQUEST)
-          .send(JSON.parse(ErrorCodes.Admin.ADMIN006));
+      if (!/^(?=.*\d)(?=.*[a-zA-Z]).{8,}$/.test(resetData.newPassword)) {
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+          code: ErrorCodes.Admin.ADMIN005,
+          message: "Password does not meet complexity requirements",
+        });
         return;
       }
 
-      const parsedRequestPasswordDetails = JSON.parse(requestPasswordDetails);
+      const resetDetails = await adminService.getResetPasswordDetails(resetData.txnId);
+      if (!resetDetails) {
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+          code: ErrorCodes.Admin.ADMIN006,
+          message: "Invalid reset password request",
+        });
+        return;
+      }
 
-      const admin = await adminService.getAdminByEmail(
-        parsedRequestPasswordDetails.adminEmail
-      );
+      const { adminEmail } = JSON.parse(resetDetails);
+      const admin = await adminService.getAdminByEmail(adminEmail);
       if (!admin) {
-        logger.warn(`${logPrefix} :: invalid request :: admin not found`);
-        res
-          .status(HttpStatusCodes.BAD_REQUEST)
-          .send(JSON.parse(ErrorCodes.Admin.ADMIN009));
-        return;
-      }
-
-      const isPasswordNotChanged = await bcrypt.compare(
-        resetPasswordRequest.newPassword,
-        admin.password
-      );
-      if (isPasswordNotChanged) {
-        logger.warn(
-          `${logPrefix} :: isPasswordNotChanged :: ${isPasswordNotChanged}`
-        );
-        res
-          .status(HttpStatusCodes.BAD_REQUEST)
-          .send(JSON.parse(ErrorCodes.Admin.ADMIN007));
-        return;
-      }
-
-      const passwordHash = await bcrypt.hash(
-        resetPasswordRequest.newPassword,
-        10
-      );
-      const passwordResetted = await adminService.updatePassword(
-        admin.emailId,
-        admin.userId,
-        resetPasswordRequest.txnId,
-        passwordHash
-      );
-
-      if (!passwordResetted) {
-        res
-          .status(HttpStatusCodes.BAD_REQUEST)
-          .send(JSON.parse(ErrorCodes.Admin.ADMIN008));
-        return;
-      }
-
-      res.status(HttpStatusCodes.OK).send({
-        data: null,
-        message: "Password reset successfully",
-      });
-    } catch (error) {
-      logger.error(`${logPrefix} :: error :: ${error.message} :: ${error}`);
-      res
-        .status(HttpStatusCodes.INTERNAL_SERVER_ERROR)
-        .send(JSON.parse(ErrorCodes.Admin.ADMIN000));
-    }
-  },
-  getForgetPasswordOtp: async (req: Request, res: Response): Promise<void> => {
-    const logPrefix = `adminController :: getForgetPasswordOtp `;
-   
-  
-    try {
-      logger.info(`${logPrefix} :: Request received`);
-  
-      /*
-        #swagger.tags = ['Admin']
-        #swagger.summary = 'Get Forgot Password OTP'
-        #swagger.description = 'Endpoint to generate OTP for admin forgot password using email'
-        #swagger.parameters['body'] = {
-          in: 'body',
-          required: true,
-          schema: {
-            emailId: "admin@example.com"
-          }
-        }
-      */
-        const { emailId } = req.body;
-
-      if (!emailId || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailId)) {
-        logger.warn(`${logPrefix} :: Invalid email format`);
-        res.status(HttpStatusCodes.BAD_REQUEST).send(ErrorCodes.Admin.ADMIN011);
-        return;
-      }
-  
-      const adminExists = await adminRepository.existsByEmail(emailId);
-      if (!adminExists) {
-        logger.warn(`${logPrefix} :: Admin not found`);
-        res.status(HttpStatusCodes.NOT_FOUND).send(ErrorCodes.Admin.ADMIN012);
-        return;
-      }
-  
-      
-      const txnId = await adminService.getForgetPasswordOtp(emailId);
-  
-      res.status(HttpStatusCodes.OK).send({
-        data: { txnId },
-        message: "Generated Forget Password OTP successfully",
-      });
-  
-    } catch (error) {
-      logger.error(`${logPrefix} :: ${error.message} :: ${error}`);
-      res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(ErrorCodes.Admin.ADMIN000);
-    }
-  },
-  verifyForgetPasswordOtp: async (req: Request, res: Response): Promise<void> => {
-    const logPrefix = `adminController :: verifyForgetPasswordOtp`;
-    
-    try {
-      logger.info(`${logPrefix} :: Request received`);
-  
-      /*
-        #swagger.tags = ['Admin']
-        #swagger.summary = 'Verify Forgot Password OTP'
-        #swagger.description = 'Endpoint to verify OTP for admin forgot password using txnId and OTP'
-        #swagger.parameters['body'] = {
-          in: 'body',
-          required: true,
-          schema: {
-            otp: 'encryptedOtp',
-            txnId: 'uuid'
-          }
-        }
-      */
-  
-      const otpDetails = req.body;
-      const { error } = await adminValidations.validateVerifyForgotPassword(otpDetails);
-  
-      if (error) {
-        logger.warn(`${logPrefix} :: Validation failed :: ${error.details?.[0]?.message || error.message}`);
-        res.status(HttpStatusCodes.BAD_REQUEST).send({
-          errorCode: ErrorCodes.Admin.ADMIN000,
-          errorMessage: error.details?.[0]?.message || error.message,
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+          code: ErrorCodes.Admin.ADMIN009,
+          message: "Invalid request",
         });
         return;
       }
-  
-      if (environment.decryptSensitiveData) {
-        otpDetails.otp = encDecHelper.decryptPayload(otpDetails.otp);
-      }
-  
-      const txnId = otpDetails.txnId;
-      const otp = otpDetails.otp
-      const cachedOtpData = await adminService.getForgotPasswordOtpDetails(txnId);
-  
-      if (!cachedOtpData) {
-        logger.warn(`${logPrefix} :: OTP details not found in Redis for txnId: ${txnId}`);
-        res.status(HttpStatusCodes.BAD_REQUEST).send(ErrorCodes.Admin.ADMIN013);
+
+      const isSamePassword = await bcrypt.compare(resetData.newPassword, admin.password);
+      if (isSamePassword) {
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+          code: ErrorCodes.Admin.ADMIN001,
+          message: "New password cannot be same as old password",
+        });
         return;
       }
-  
-      const otpPayload = JSON.parse(cachedOtpData);
-  
-      if (
-        otpPayload.otp !== parseInt(otp) ||
-        otpPayload.txnId !== txnId
-      ){
-        logger.warn(`${logPrefix} :: OTP mismatch or invalid txnId`);
-        res.status(HttpStatusCodes.BAD_REQUEST).send(ErrorCodes.Admin.ADMIN013);
+
+      const newPasswordHash = await bcrypt.hash(resetData.newPassword, 10);
+      const success = await adminService.updatePassword(
+        admin.admin_email,
+        admin.admin_id,
+        resetData.txnId,
+        newPasswordHash
+      );
+
+      if (!success) {
+        res.status(HttpStatusCodes.BAD_REQUEST).json({
+          code: ErrorCodes.Admin.ADMIN008,
+          message: "Invalid password reset",
+        });
         return;
       }
-  
-      const newTxnId = await adminService.verifyForgetPasswordOtp(otpPayload.userName, txnId)
-  
-      res.status(HttpStatusCodes.OK).send({
-        data: { txnId: newTxnId },
-        message: "Verified Forget Password OTP successfully",
+
+      res.status(HttpStatusCodes.OK).json({
+        data: null,
+        message: "Admin password updated successfully"
       });
-  
     } catch (error) {
-      logger.error(`${logPrefix} :: Error :: ${error.message} :: ${error}`);
-      res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(ErrorCodes.Admin.ADMIN000);
+      logger.error(`resetPassword :: ${error.message}`);
+      res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json(
+        JSON.parse(ErrorCodes.Admin.ADMIN000)
+      );
     }
-  },
-  
-  
+  }
 };
 
 export default adminController;

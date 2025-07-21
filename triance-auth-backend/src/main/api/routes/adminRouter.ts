@@ -3,7 +3,7 @@ import { adminController } from "../controllers";
 
 const adminRouter = Router();
 
-adminRouter.route("/validateToken").get(adminController.validateToken);
+// adminRouter.route("/validateToken").get(adminController.validateToken);
 
 adminRouter.route("/login").post(adminController.login);
 
@@ -13,9 +13,9 @@ adminRouter.route("/requestResetPassword").post(adminController.requestResetPass
 
 adminRouter.route("/resetPassword").post(adminController.resetPassword);
 
-adminRouter.route("/getForgetPasswordOtp").post(adminController.getForgetPasswordOtp);
+// adminRouter.route("/getForgetPasswordOtp").post(adminController.getForgetPasswordOtp);
 
-adminRouter.route("/verifyForgetPasswordOtp").post(adminController.verifyForgetPasswordOtp);
+// adminRouter.route("/verifyForgetPasswordOtp").post(adminController.verifyForgetPasswordOtp);
 
 
 

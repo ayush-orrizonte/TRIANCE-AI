@@ -6,7 +6,7 @@ export interface Request extends ExpressRequest {
 }
 
 export interface PlainToken {
-    id: string;
+    id: number;
     name: string;
     email: string;
     roleId: string;

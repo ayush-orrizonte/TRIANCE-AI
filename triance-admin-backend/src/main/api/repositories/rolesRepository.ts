@@ -37,6 +37,37 @@ const rolesRepository = {
       throw error;
     }
   },
+  addPermissions: async (
+  roleId: string,
+  menuId: number,
+  permissionId: number,
+  updated_by?: string
+): Promise<void> => {
+  const logPrefix = `rolesRepository :: addPermissions :: roleId :: ${roleId} :: menuId :: ${menuId} :: permissionId :: ${permissionId}`;
+  try {
+    logger.debug(`${logPrefix} :: preparing to upsert role permission`);
+
+    const query = `
+      INSERT INTO role_permissions (role_id, menu_id, permission_id, updated_by, updated_at)
+      VALUES ($1, $2, $3, $4, now())
+      ON CONFLICT (role_id, menu_id, permission_id)
+      DO UPDATE SET updated_by = EXCLUDED.updated_by, updated_at = now();
+    `;
+
+    const values = [roleId, menuId, permissionId, updated_by || null];
+
+    const result = await pgClient.executeQuery(query, values);
+
+    logger.debug(`${logPrefix} :: db result :: ${JSON.stringify(result)}`);
+  } catch (error: unknown) {
+    if (isError(error)) {
+      logger.error(`${logPrefix} :: Error :: ${error.message}`);
+      throw new Error(error.message);
+    }
+    throw new Error('Unknown error occurred');
+  }
+},
+
 
   addRole: async (role: IRole): Promise<string> => {
     const logPrefix = `rolesRepository :: addRole`;
@@ -125,7 +156,7 @@ const rolesRepository = {
     }
   },
 
-  listRolesCount: async (searchFilter: string): Promise<number> => {
+  listRolesCount: async (searchFilter: string, roleId: string, isActive :boolean): Promise<number> => {
     const logPrefix = `rolesRepository :: listRolesCount`;
     try {
       const result = await pgClient.executeQuery<{ count: number }>(
@@ -182,113 +213,134 @@ const rolesRepository = {
     }
   },
 
-  getDefaultAccessList: async (): Promise<any> => {
-    const logPrefix = `menusRepository :: getDefaultAccessList`;
-    try {
-      logger.info(`${logPrefix} :: Fetching default access list`);
+  getDefaultAccessList: async (): Promise<{ data: any[] }> => {
+  const logPrefix = `menusRepository :: getDefaultAccessList`;
+  try {
+    logger.info(`${logPrefix} :: Fetching default access list`);
 
-      const query = `
-        SELECT 
-          menu_id AS "menuId",
-          menu_name AS "menuName",
-          route_url AS "routeUrl",
-          icon_class AS "iconClass"
-        FROM menus
-        WHERE status = 1
-        ORDER BY menu_order ASC;
-      `;
+    const query = `
+      SELECT 
+        menu_id AS "menuId",
+        menu_name AS "menuName",
+        route_url AS "routeUrl",
+        icon_class AS "iconClass"
+      FROM menus
+      WHERE status = 1
+      ORDER BY menu_order ASC;
+    `;
 
-      const { rows: menus } = await db.query(query);
+    const menus = await pgClient.executeQuery<{
+      menuId: number;
+      menuName: string;
+      routeUrl: string;
+      iconClass: string;
+    }>(query);
 
-      const defaultPermissions = [
-        { permissionId: 1, permissionName: "Write" },
-        { permissionId: 2, permissionName: "Read" },
-      ];
+    const defaultPermissions = [
+      { permissionId: 1, permissionName: "Write" },
+      { permissionId: 2, permissionName: "Read" },
+    ];
 
-      const result = menus.flatMap((menu) =>
-        defaultPermissions.map((permission) => ({
-          menu_id: menu.menuId,
-          menu_name: menu.menuName,
-          route_url: menu.routeUrl,
-          icon_class: menu.iconClass,
-          permission_id: permission.permissionId,
-          permission_name: permission.permissionName,
-        }))
-      );
+    const result = menus.flatMap((menu) =>
+      defaultPermissions.map((permission) => ({
+        menu_id: menu.menuId,
+        menu_name: menu.menuName,
+        route_url: menu.routeUrl,
+        icon_class: menu.iconClass,
+        permission_id: permission.permissionId,
+        permission_name: permission.permissionName,
+      }))
+    );
 
-      logger.debug(`${logPrefix} :: Result :: ${JSON.stringify(result)}`);
-      return { data: result };
-    } catch (error: any) {
+    logger.debug(`${logPrefix} :: Result :: ${JSON.stringify(result)}`);
+    return { data: result };
+  } catch (error: unknown) {
+    if (isError(error)) {
       logger.error(`${logPrefix} :: Error :: ${error.message}`);
       throw new Error(error.message);
     }
-  },
+    throw new Error("Unknown error occurred");
+  }
+},
+
 
   getCombinedAccess: async (roleId: string): Promise<any[]> => {
-    const logPrefix = `menusRepository :: getCombinedAccess :: roleId :: ${roleId}`;
-    try {
-      logger.info(`${logPrefix} :: Fetching combined access for role`);
+  const logPrefix = `menusRepository :: getCombinedAccess :: roleId :: ${roleId}`;
+  try {
+    logger.info(`${logPrefix} :: Fetching combined access for role`);
 
-      const roleQuery = `
-        SELECT permissions 
-        FROM roles 
-        WHERE role_id = $1 AND status = 1;
-      `;
-      const { rows: roleRows } = await db.query(roleQuery, [roleId]);
-      const role = roleRows[0];
+    // Fetch permissions from role_permissions table
+    const rolePermissionQuery = `
+      SELECT menu_id AS "menuId", permission_id AS "permissionId"
+      FROM role_permissions
+      WHERE role_id = $1;
+    `;
+    const permissions = await pgClient.executeQuery<{ menuId: string, permissionId: number }>(
+      rolePermissionQuery,
+      [roleId]
+    );
 
-      if (!role || !role.permissions || role.permissions.length === 0) {
-        logger.warn(`${logPrefix} :: No permissions found for role`);
-        return [];
-      }
+    if (!permissions || permissions.length === 0) {
+      logger.warn(`${logPrefix} :: No permissions found for role`);
+      return [];
+    }
 
-      const permissionMap: Record<string, string> = {
-        "1": "Write",
-        "2": "Read",
+    const permissionMap: Record<number, string> = {
+      1: "Write",
+      2: "Read",
+    };
+
+    const uniqueMenuIds = [...new Set(permissions.map((p) => p.menuId))];
+
+    // Fetch menu details
+    const menuQuery = `
+      SELECT 
+        menu_id AS "menuId",
+        menu_name AS "menuName",
+        route_url AS "routeUrl",
+        icon_class AS "iconClass"
+      FROM menus
+      WHERE menu_id = ANY($1::uuid[]) AND status = 1;
+    `;
+    const menus = await pgClient.executeQuery<{
+      menuId: string;
+      menuName: string;
+      routeUrl: string;
+      iconClass: string;
+    }>(menuQuery, [uniqueMenuIds]);
+
+    const combinedAccessRaw = permissions.map((perm) => {
+      const menu = menus.find((m) => m.menuId === perm.menuId);
+      if (!menu) return null;
+
+      return {
+        menu_name: menu.menuName,
+        route_url: menu.routeUrl,
+        icon_class: menu.iconClass,
+        access: permissionMap[perm.permissionId] || "Unknown",
       };
+    }).filter(Boolean);
 
-      const menuIds = role.permissions.map((p: any) => p.menuId).filter(Boolean);
-      const uniqueMenuIds = [...new Set(menuIds)];
+    // Deduplicate final result
+    const seen = new Set();
+    const combinedAccess = combinedAccessRaw.filter((item) => {
+      const key = `${item!.menu_name}-${item!.route_url}-${item!.icon_class}-${item!.access}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
-      const menuQuery = `
-        SELECT 
-          menu_id AS "menuId",
-          menu_name AS "menuName",
-          route_url AS "routeUrl",
-          icon_class AS "iconClass"
-        FROM menus
-        WHERE menu_id = ANY($1::uuid[]) AND status = 1;
-      `;
-
-      const { rows: menus } = await db.query(menuQuery, [uniqueMenuIds]);
-
-      const combinedAccessRaw = role.permissions.map((perm: any) => {
-        const menu = menus.find((m) => m.menuId === perm.menuId);
-        if (!menu) return null;
-
-        return {
-          menu_name: menu.menuName,
-          route_url: menu.routeUrl,
-          icon_class: menu.iconClass,
-          access: permissionMap[String(perm.permissionId)] || "Unknown",
-        };
-      }).filter(Boolean);
-
-      const seen = new Set();
-      const combinedAccess = combinedAccessRaw.filter((item) => {
-        const key = `${item.menu_name}-${item.route_url}-${item.icon_class}-${item.access}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-
-      logger.debug(`${logPrefix} :: Combined access result :: ${JSON.stringify(combinedAccess)}`);
-      return combinedAccess;
-    } catch (error: any) {
+    logger.debug(`${logPrefix} :: Combined access result :: ${JSON.stringify(combinedAccess)}`);
+    return combinedAccess;
+  } catch (error: unknown) {
+    if (isError(error)) {
       logger.error(`${logPrefix} :: Error :: ${error.message}`);
       throw new Error(error.message);
     }
-  },
+    throw new Error("Unknown error occurred");
+  }
+}
+
 };
 
 export default rolesRepository;

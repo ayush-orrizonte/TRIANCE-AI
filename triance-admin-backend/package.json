@@ -1,5 +1,5 @@
 {
-  "name": "gm-admin-backend",
+  "name": "triance-admin-backend",
   "version": "1.0.0",
   "description": "Manage Admin API",
   "main": "src/main/app.ts",
@@ -32,7 +32,8 @@
     "swagger-autogen": "^2.23.7",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "triance-commons": "file:../../triance-commons"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -66,18 +67,18 @@
       "PORT": 5003,
       "HOST": "localhost",
       "MODULE": "triance-admin-backend",
-      "REDIS_HOST": "gurumitra.wadhwanifoundation.org",
-      "NOSQL_DB_REQUIRED": true,
-      "NOSQL_HOST": "dev.orrizonte.in",
-      "NOSQL_PORT": 27017,
-      "NOSQL_AUTH_DATABASE": "admin",
-      "NOSQL_DATABASE": "triance_ai",
-      "NOSQL_USER": "dev",
-      "NOSQL_PASSWORD": "VfcqYLH43iXLuNK7",
+      "REDIS_HOST": "dev.orrizonte.in",
+      "REDIS_PORT": 6379,
       "LOG_LEVEL": "info",
+      "INIT_COMMON_PG_DB_REQUIRED": true,
+      "INIT_COMMON_MASTER_HOST": "dev.orrizonte.in",
+      "INIT_COMMON_MASTER_USER": "dev",
+      "INIT_COMMON_MASTER_DATABASE": "triance_ai",
+      "INIT_COMMON_MASTER_PASSWORD": "zQrBoxTNZffPZLak",
+      "INIT_COMMON_MASTER_PORT": 5432,
       "REDIS_KEY_PREFIX": "dev|triance_ai|",
-      "NODEMAILER_USER": "orrizonte6@gmail.com",
-      "NODEMAILER_PASSWORD": "kfdvtcszqzccahsy",
+      "NODEMAILER_USER": "infotempleseva@gmail.com",
+      "NODEMAILER_PASSWORD": "kghr tqid jogn kibv",
       "NODEMAILER_HOST": "smtp.gmail.com",
       "NODEMAILER_SERVICE": "gmail",
       "NODEMAILER_PORT": 465,
@@ -86,3 +87,4 @@
     }
   }
 }
+

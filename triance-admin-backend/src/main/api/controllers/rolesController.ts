@@ -273,7 +273,7 @@ const rolesController = {
         return;
       }
 
-      role.updated_by = plainToken?.teacherId;
+      role.updated_by = plainToken?.id;
       await rolesService.updateRole(role);
 
       logger.info(`${logPrefix} :: Role updated successfully`);

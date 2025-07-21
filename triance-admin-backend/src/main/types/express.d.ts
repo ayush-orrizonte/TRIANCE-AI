@@ -5,6 +5,13 @@ export interface Request extends ExpressRequest {
   params: any;
   plainToken?: PlainToken;
 }
+declare global {
+  namespace Express {
+    interface Request {
+      plainToken?: PlainToken;
+    }
+  }
+}
 
 export interface PlainToken {
   id: string;

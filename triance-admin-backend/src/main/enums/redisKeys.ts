@@ -19,4 +19,13 @@ export enum RedisKeys {
   ADMIN_USER_BY_USER_ID = "admin|user:${userId}",
   MENUS = "menus",
   MENU_BY_ID = "menu:${menu_id}",
+  ADMIN_BY_ID = "admin|id:${adminId}",
+  ADMINS_LIST = "admins|pageSize:${pageSize}|currentPage:${currentPage}|search:${searchQuery}",
+  ADMINS_BY_ROLE_ID = "admins|role:${roleId}",
+  ADMIN_BY_EMAIL = "admin|email:${adminEmail}",
+  ADMINS_COUNT = "admins|count",
+  ADMIN_LOGIN_ATTEMPTS = "admin|login_attempts:id:${adminId}",
+  ADMIN_LAST_LOGIN = "admin|last_login:id:${adminId}",
+  ADMIN_STATUS = "admin|status:id:${adminId}",
+  ADMIN_PROFILE = "admin|profile:id:${adminId}",
 }

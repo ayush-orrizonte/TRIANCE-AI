@@ -4,6 +4,7 @@ import { CacheTTL, LoggerUtils, RedisUtils  } from "../../triance-commons";
 import { IRole } from "../../types/custom";
 import rolesRepository from "../repositories/rolesRepository";
 import { RoleStatus } from "../../enums/status";
+import pgClient from "../../triance-commons/src/database/pg"; 
 
 const logger = LoggerUtils.getLogger("teacherController");
 const redisUtils = RedisUtils.getInstance();
@@ -24,8 +25,11 @@ const rolesService = {
     
           const result = await rolesRepository.getDefaultAccessList();
           logger.debug(`${logPrefix} :: Data fetched from repository :: ${JSON.stringify(result)}`);
-          if (result && result.length > 0) redisUtils.set(key, JSON.stringify(result), CacheTTL.LONG);
-          return result;
+          if (result && result.data && result.data.length > 0) {
+            redisUtils.set(key, JSON.stringify(result), CacheTTL.LONG);
+        }
+        return result;
+
         } catch (error: unknown) {
     if (isError(error)) {
         logger.error(`${logPrefix} :: Error :: ${error.message}`);
@@ -128,7 +132,7 @@ const rolesService = {
             pageSize,
             currentPage,
             roleId,
-            searchFilter
+            
           );
       
           if (roles?.length > 0) {
@@ -168,7 +172,7 @@ const rolesService = {
           }
       
           logger.info(`${logPrefix} :: Counting roles from DB`);
-          const count = await rolesRepository.listRolesCount(isActive, roleId, searchFilter);
+          const count = await rolesRepository.listRolesCount(searchFilter, roleId,isActive );
       
           await redisUtils.set(key, count.toString(), CacheTTL.MID);
       
@@ -182,25 +186,8 @@ const rolesService = {
           return 0;
         }
       },
-      getAccessListByRoleId: async (roleId: string): Promise<any> => {
-        const logPrefix = `rolesService :: getAccessListByRoleId :: roleId :: ${roleId}`;
-        try {
-          const key = redisKeysFormatter.getFormattedRedisKey(RedisKeys.ACCESS_LIST_BY_ROLE_ID, { roleId: roleId.toString() });
-          const cachedResult = await redisUtils.get(key);
-          if (cachedResult) {
-            logger.debug(`${logPrefix} :: cached result :: ${cachedResult}`)
-            return JSON.parse(cachedResult)
-          }
-    
-          const result = await rolesRepository.getAccessListByRoleId(roleId);
-          if (result) redisUtils.set(key, result, CacheTTL.LONG);
-          return result;
-        } catch (error: unknown) {
-    if (isError(error)) {
-        logger.error(`${logPrefix} :: Error :: ${error.message}`);
-        throw new Error(error.message);
-    }}
-      }, updateRoleStatus: async (roleId: string, status: RoleStatus): Promise<void> => {
+      
+      updateRoleStatus: async (roleId: string, status: RoleStatus): Promise<void> => {
         const logPrefix = ` rolesService :: updateRoleStatus :: roleId :: ${roleId}`;
         try {
           logger.info(`${logPrefix} :: Updating role status`);
@@ -238,6 +225,27 @@ const rolesService = {
         return null;
       }
     },
+    getAccessListByRoleId: async (roleId: string): Promise<any> => {
+        const logPrefix = `rolesService :: getAccessListByRoleId :: roleId :: ${roleId}`;
+        try {
+          const key = redisKeysFormatter.getFormattedRedisKey(RedisKeys.ACCESS_LIST_BY_ROLE_ID, { roleId: roleId.toString() });
+          const cachedResult = await redisUtils.get(key);
+          if (cachedResult) {
+            logger.debug(`${logPrefix} :: cached result :: ${cachedResult}`)
+            return JSON.parse(cachedResult)
+          }
+    
+          const result = await rolesRepository.getAccessListByRoleId(roleId);
+          if (result && result.length > 0) {
+              redisUtils.set(key, JSON.stringify(result), CacheTTL.LONG);
+          }
+          return result;
+        } catch (error: unknown) {
+    if (isError(error)) {
+        logger.error(`${logPrefix} :: Error :: ${error.message}`);
+        throw new Error(error.message);
+    }}
+      },
       clearRedisCache: async (roleId?: string, pageSize: number = 10,currentPage: number = 1, searchFilter?: string, isActive: boolean = true): Promise<void> => {
         const logPrefix = `rolesService :: clearRedisCache :: roleId :: ${roleId}`;
         try {
@@ -293,10 +301,10 @@ const rolesService = {
         ORDER BY menu_order ASC;
       `;
 
-      const { rows } = await db.query(query);
-      logger.debug(`${logPrefix} :: menus :: ${JSON.stringify(rows)}`);
+      const menus = await pgClient.executeQuery(query);
+      logger.debug(`${logPrefix} :: menus :: ${JSON.stringify(menus)}`);
 
-      return rows;
+    return menus;
     } catch (error: any) {
       logger.error(`${logPrefix} :: error :: ${error.message}`);
       throw error;

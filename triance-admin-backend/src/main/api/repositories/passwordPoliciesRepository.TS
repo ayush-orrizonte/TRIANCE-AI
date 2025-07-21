@@ -1,6 +1,7 @@
 import { pgQueries } from "../../enums";
 import { IPasswordPolicy } from "../../types/custom";
-import { pg, LoggerUtils } from "../../triance-commons";
+import { pg } from "../../triance-commons/src/database";
+import { LoggerUtils } from "../../triance-commons/src/audit/loggerUtils";
 import pgClient from "../../triance-commons/src/database/pg";
 
 function isError(error: unknown): error is Error {
@@ -35,10 +36,24 @@ const result = await pgClient.executeQuery(query);
     },
 
   createPasswordPolicy: async (passwordPolicy: IPasswordPolicy) => {
-    const logPrefix = `passwordPoliciesRepository :: createPasswordPolicy :: passwordPolicy :: ${JSON.stringify(passwordPolicy)}`;
+    const logPrefix = 'createPasswordPolicy';
     try {
       const _query = {
-        text: pgQueries.PasswordPolicyQueries.ADD_PASSWORD_POLICY,
+        text: `
+          INSERT INTO password_policies(
+            password_expiry, 
+            password_history, 
+            minimum_password_length, 
+            complexity, 
+            alphabetical, 
+            numeric, 
+            special_characters,
+            allowed_special_characters,
+            maximum_invalid_attempts,
+            date_updated
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          RETURNING id
+        `,
         values: [
           passwordPolicy.password_expiry,
           passwordPolicy.password_history,
@@ -49,11 +64,12 @@ const result = await pgClient.executeQuery(query);
           passwordPolicy.special_characters,
           passwordPolicy.allowed_special_characters,
           passwordPolicy.maximum_invalid_attempts,
-        ],
+          passwordPolicy.date_updated || new Date()
+        ]
       };
-      logger.debug(`${logPrefix} :: query :: ${JSON.stringify(_query)}`);
 
       const result = await pgClient.executeQuery(_query);
+      return result;
       logger.debug(`${logPrefix} :: db result :: ${JSON.stringify(result)}`);
     }  catch (error: unknown) {
             if (isError(error)) {
@@ -141,3 +157,4 @@ const result = await pgClient.executeQuery(query);
 };
 
 export default passwordPoliciesRepository;
+

@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chalukyamohanrajwadhwani/commons.git"
+    "url": "git+https://github.com/ayush-orrizonte/TRIANCE-AI.git"
   },
-  "author": "Chalukya Mohanraj",
+  "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/chalukyamohanrajwadhwani/commons/issues"
+    "url": "https://github.com/ayush-orrizonte/TRIANCE-AI/issues"
   },
-  "homepage": "https://github.com/chalukyamohanrajwadhwani/commons#readme",
+  "homepage": "https://github.com/ayush-orrizonte/TRIANCE-AI/blob/main/README.md",
   "description": "",
   "devDependencies": {
     "@types/ejs": "^3.1.5",
@@ -39,3 +39,4 @@
     "winston": "^3.17.0"
   }
 }
+

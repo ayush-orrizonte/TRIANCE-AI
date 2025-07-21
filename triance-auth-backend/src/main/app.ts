@@ -104,8 +104,38 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 const startServer = async () => {
   try {
-    await mongoDBUtils.connect();
-    await redisUtils.connect();
+    const redisUtils = RedisUtils.getInstance();
+    try {
+      await redisUtils.connect();
+      logger.info('Redis connection established');
+      app.get('/health', async (req, res) => {
+        try {
+          await redisUtils.ensureConnection();
+          res.json({ 
+            status: 'healthy',
+            redis: 'connected',
+            mongo: 'connected'
+          });
+        } catch (error) {
+          res.status(500).json({
+            status: 'degraded',
+            redis: 'disconnected',
+            mongo: 'connected',
+            error: error.message
+          });
+        }
+      });
+    } catch (error) {
+      logger.error(`Redis connection failed: ${error.message}`);
+      // Continue in degraded mode without Redis
+      app.get('/health', (req, res) => {
+        res.status(500).json({
+          status: 'degraded',
+          redis: 'disconnected',
+          mongo: 'connected'
+        });
+      });
+    }
 
     app.listen(environment.port, () => {
       logger.info(`Server Started :: Listening on port [${environment.port}]`);

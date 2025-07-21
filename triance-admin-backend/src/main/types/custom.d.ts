@@ -15,22 +15,23 @@ export interface IMenu {
 }
 
 export interface IPasswordPolicy {
-  id: number;
-  password_expiry: number;
-  password_history: number;
+  id?: number;
+  password_expiry?: number;
+  password_history?: number;
   minimum_password_length: number;
   complexity: number;
-  alphabetical: number;
-  numeric: number;
-  special_characters: number;
+  alphabetical: boolean; 
+  numeric: boolean;      
+  special_characters: boolean; 
   allowed_special_characters: string;
   maximum_invalid_attempts: number;
-  date_created: string | undefined;
-  date_updated: string | undefined;
+  date_created?: string;
+  date_updated?: string;
 }
 
+
 export interface IAdmin {
-  admin_id: string;
+  admin_id: number;
   admin_name: string;
   admin_email: string;
   password: string;

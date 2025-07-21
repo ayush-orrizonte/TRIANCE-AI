@@ -4,12 +4,14 @@ import { LoggerUtils } from "../audit";
 import { CacheTTL } from "../enums";
 
 export class RedisUtils {
-    private primaryClient: RedisClientType | null = null;
-    private replicaClient: RedisClientType | null = null;
+    private client: RedisClientType | null = null;
     private logger = LoggerUtils.getLogger("RedisUtils");
     private prefixKey: string = EnvUtils.getString("REDIS_KEY_PREFIX");
     private static instance: RedisUtils | null = null;
+    private connectionRetries = 0;
+    private maxRetries = 3;
 
+    // Singleton pattern
     public static getInstance(): RedisUtils {
         if (!RedisUtils.instance) {
             RedisUtils.instance = new RedisUtils();
@@ -17,157 +19,174 @@ export class RedisUtils {
         return RedisUtils.instance;
     }
 
-    private async createRedisClient(
-        host: string,
-        port: number,
-        options: { username: string; password: string; tls: boolean },
-        readonly: boolean = true
-    ): Promise<RedisClientType> {
-        try {
-            const url = `${options.tls ? "rediss" : "redis"}://${host}:${port}`;
-            const client = createClient({
-                url,
-                readonly,
-                username: options.username,
-                password: options.password,
-            }) as RedisClientType;
-    
-            client.on("error", (err) => this.logger.error(`Redis Connection Failed :: ${err.message} :: ${err}`));
-            client.on("connect", () => this.logger.info(`Redis ${readonly ? "Reader Replica" : ""}Connected`));
-            await client.connect();
-            return client;
-        } catch (error: any) {
-            this.logger.error(`Error creating Redis client :: ${error.message} :: ${error}`);
-            throw error;
-        }
+    // Create and configure Redis client
+    private async createRedisClient(): Promise<RedisClientType> {
+        const host = EnvUtils.getString("REDIS_HOST", "localhost");
+        const port = EnvUtils.getNumber("REDIS_PORT", 6379);
+        const username = EnvUtils.getString("REDIS_USERNAME");
+        const password = EnvUtils.getString("REDIS_PASSWORD");
+        const tls = EnvUtils.getBoolean("REDIS_TLS", false);
+
+        const url = `${tls ? "rediss" : "redis"}://${host}:${port}`;
+        const client = createClient({
+            url,
+            username,
+            password,
+            socket: {
+                reconnectStrategy: (retries) => {
+                    if (retries > 5) {
+                        this.logger.error('Max reconnection attempts reached');
+                        return new Error('Max reconnection attempts reached');
+                    }
+                    return Math.min(retries * 100, 5000);
+                }
+            }
+        }) as RedisClientType;
+
+        // Event handlers
+        client.on("error", (err) => 
+            this.logger.error(`Redis Connection Error: ${err.message}`));
+        client.on("connect", () => 
+            this.logger.info("Redis Connected"));
+        client.on("ready", () => 
+            this.logger.info("Redis Ready"));
+        client.on("reconnecting", () => 
+            this.logger.warn("Redis Reconnecting"));
+        client.on("end", () => 
+            this.logger.warn("Redis Disconnected"));
+
+        return client;
     }
 
+    // Establish connection with retry logic
     public async connect(): Promise<void> {
         try {
-            const host = EnvUtils.getString("REDIS_HOST", "localhost");
-            const port = EnvUtils.getNumber("REDIS_PORT", 6379);
-            const username = EnvUtils.getString("REDIS_USERNAME");
-            const password = EnvUtils.getString("REDIS_PASSWORD");
-            const tls = EnvUtils.getBoolean("REDIS_TLS", false);
+            if (this.client && this.client.isOpen) {
+                return;
+            }
 
-            this.primaryClient = await this.createRedisClient(host, port, { username, password, tls }, false);
-            
-            const replicaHost = EnvUtils.getString("REDIS_REPLICA_HOST");
-            if (replicaHost) this.replicaClient = await this.createRedisClient(replicaHost, port, { username, password, tls });
+            this.client = await this.createRedisClient();
+            await this.client.connect();
+            this.connectionRetries = 0;
+            this.logger.info("Redis connection established");
         } catch (error: any) {
-            this.logger.error(`Error connecting to Redis :: ${error.message} :: ${error}`);
+            this.connectionRetries++;
+            if (this.connectionRetries <= this.maxRetries) {
+                this.logger.warn(`Retrying Redis connection (attempt ${this.connectionRetries})`);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                return this.connect();
+            }
+            this.logger.error(`Failed to connect to Redis after ${this.maxRetries} attempts`);
             throw error;
         }
     }
 
-    public async disconnect(): Promise<void> {
-        try {
-            if (this.primaryClient) {
-                await this.primaryClient.quit();
-            }
-            if (this.replicaClient) {
-                await this.replicaClient.quit();
-            }
-            this.logger.info("Disconnected from Redis");
-        } catch (error: any) {
-            this.logger.error(`Error disconnecting from Redis :: ${error.message} :: ${error}`);
-            throw error;
+    // Check connection status
+    public isConnected(): boolean {
+        return !!this.client?.isReady;
+    }
+
+    // Ensure connection is active
+    public async ensureConnection(): Promise<void> {
+        if (!this.isConnected()) {
+            await this.connect();
         }
     }
 
+    // Add prefix to keys
     private getPrefixedKey(key: string): string {
         return `${this.prefixKey}${key}`;
     }
 
-    public getClient(primary = true): RedisClientType | null {
+    // Get value with optional fallback
+    public async get(key: string, fallback?: () => Promise<string | null>): Promise<string | null> {
         try {
-            return primary ? this.primaryClient : this.replicaClient;
-        } catch (error: any) {
-            this.logger.error(`Error getting Redis client :: ${error.message} :: ${error}`);
-            throw error;
-        }
-    }
-
-    public async set(key: string, value: string, expiryInSeconds?: CacheTTL): Promise<void> {
-        try {
-            if (!this.primaryClient) throw new Error("Redis primary client is not connected");
+            await this.ensureConnection();
+            if (!this.client) throw new Error("Redis client not connected");
             const fullKey = this.getPrefixedKey(key);
-            if (expiryInSeconds) {
-                await this.primaryClient.set(fullKey, value, { EX: expiryInSeconds });
-            } else {
-                await this.primaryClient.set(fullKey, value);
+            return await this.client.get(fullKey);
+        } catch (error: any) {
+            this.logger.warn(`Redis get failed for key ${key}: ${error.message}`);
+            if (fallback) {
+                return fallback();
             }
-        } catch (error: any) {
-            this.logger.error(`Error setting key ${key} :: ${error.message} :: ${error}`);
             throw error;
         }
     }
 
-    public async get(key: string): Promise<string | null> {
+    // Set value with optional TTL
+    public async set(key: string, value: string, ttl?: CacheTTL): Promise<void> {
         try {
-            const client = this.replicaClient || this.primaryClient;
-            if (!client) throw new Error("Redis replica client is not connected");
+            await this.ensureConnection();
+            if (!this.client) throw new Error("Redis client not connected");
             const fullKey = this.getPrefixedKey(key);
-            return await client.get(fullKey);
+            const options = ttl ? { EX: ttl } : undefined;
+            await this.client.set(fullKey, value, options);
         } catch (error: any) {
-            this.logger.error(`Error getting key ${key} :: ${error.message} :: ${error}`);
+            this.logger.error(`Redis set failed for key ${key}: ${error.message}`);
             throw error;
         }
     }
 
+    // Delete key
     public async delete(key: string): Promise<void> {
         try {
-            if (!this.primaryClient) throw new Error("Redis primary client is not connected");
+            await this.ensureConnection();
+            if (!this.client) throw new Error("Redis client not connected");
             const fullKey = this.getPrefixedKey(key);
-            await this.primaryClient.del(fullKey);
+            await this.client.del(fullKey);
         } catch (error: any) {
-            this.logger.error(`Error deleting key ${key} :: ${error.message} :: ${error}`);
+            this.logger.error(`Redis delete failed for key ${key}: ${error.message}`);
             throw error;
         }
     }
 
     public async exists(key: string): Promise<boolean> {
         try {
-            const client = this.replicaClient || this.primaryClient;
-            if (!client) throw new Error("Redis replica client is not connected");
+            await this.ensureConnection();
+            if (!this.client) throw new Error("Redis client not connected");
             const fullKey = this.getPrefixedKey(key);
-            return (await client.exists(fullKey)) > 0;
+            return (await this.client.exists(fullKey)) === 1;
         } catch (error: any) {
-            this.logger.error(`Error checking existence of key ${key} :: ${error.message} :: ${error}`);
+            this.logger.error(`Redis exists check failed for key ${key}: ${error.message}`);
             throw error;
         }
     }
 
-    public async keys(pattern: string): Promise<string[]> {
+    public async ping(): Promise<string> {
         try {
-            const client = this.replicaClient || this.primaryClient;
-            if (!client) throw new Error("Redis replica client is not connected");
-            const prefixedPattern = `${this.prefixKey}:${pattern}`;
-            return await client.keys(prefixedPattern);
+            await this.ensureConnection();
+            if (!this.client) throw new Error("Redis client not connected");
+            return await this.client.ping();
         } catch (error: any) {
-            this.logger.error(`Error fetching keys with pattern ${pattern} :: ${error.message} :: ${error}`);
+            this.logger.error(`Redis ping failed: ${error.message}`);
             throw error;
         }
     }
 
-    public async increment(key: string): Promise<number> {
+    // Disconnect from Redis
+    public async disconnect(): Promise<void> {
         try {
-            if (!this.primaryClient) throw new Error("Redis primary client is not connected");
-            const fullKey = this.getPrefixedKey(key);
-            return await this.primaryClient.incr(fullKey);
+            if (this.client) {
+                await this.client.quit();
+                this.client = null;
+                this.logger.info("Redis disconnected");
+            }
         } catch (error: any) {
-            this.logger.error(`Error incrementing key ${key} :: ${error.message} :: ${error}`);
+            this.logger.error(`Redis disconnect failed: ${error.message}`);
             throw error;
         }
     }
 
-    public async decrement(key: string): Promise<number> {
+    // Flush all keys (use with caution)
+    public async flushAll(): Promise<void> {
         try {
-            if (!this.primaryClient) throw new Error("Redis primary client is not connected");
-            const fullKey = this.getPrefixedKey(key);
-            return await this.primaryClient.decr(fullKey);
+            await this.ensureConnection();
+            if (!this.client) throw new Error("Redis client not connected");
+            await this.client.flushAll();
+            this.logger.warn("Redis cache flushed");
         } catch (error: any) {
-            this.logger.error(`Error decrementing key ${key} :: ${error.message} :: ${error}`);
+            this.logger.error(`Redis flushAll failed: ${error.message}`);
             throw error;
         }
     }

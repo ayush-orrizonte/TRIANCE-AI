@@ -49,16 +49,14 @@ const passwordPoliciesController = {
       #swagger.tags = ['Password Policies']
       #swagger.summary = 'Add Password Policy'
       #swagger.description = 'Endpoint to create a new Password Policy'
-      #swagger.parameters['Authorization'] = {
-          in: 'header',
-          required: true,
-          type: 'string',
-          description: 'JWT token for authentication'
-      }
+      
+      /*
       #swagger.parameters['body'] = {
         in: 'body',
         required: true,
         schema: {
+          passwordExpiry: 90,
+          passwordHistory: 5,
           minimumPasswordLength: 8,
           complexity: 3,
           alphabetical: true,
@@ -70,18 +68,19 @@ const passwordPoliciesController = {
       }
     */
 
+
     const passwordPolicyData = req.body;
 
-    const { error } = passwordPoliciesValidations.validateCreatePasswordPolicy(passwordPolicyData);
-    if (error) {
-      const errorMessage = error.details?.[0]?.message || error.message;
-      log.warn(`${logPrefix} :: Validation error :: ${errorMessage}`);
-      res.status(HttpStatusCodes.BAD_REQUEST).send({
-        errorCode: ErrorCodes.password_policies.PASSWORDPOLICIES000.errorCode,
-        errorMessage,
-      });
-      return;
-    }
+    // const { error } = passwordPoliciesValidations.validateCreatePasswordPolicy(passwordPolicyData);
+    // if (error) {
+    //   const errorMessage = error.details?.[0]?.message || error.message;
+    //   log.warn(`${logPrefix} :: Validation error :: ${errorMessage}`);
+    //   res.status(HttpStatusCodes.BAD_REQUEST).send({
+    //     errorCode: ErrorCodes.password_policies.PASSWORDPOLICIES000.errorCode,
+    //     errorMessage,
+    //   });
+    //   return;
+    // }
 
    
     const passwordPolicy: IPasswordPolicy = passwordPolicyData;
@@ -211,3 +210,4 @@ const passwordPoliciesController = {
 };
 
 export default passwordPoliciesController;
+

@@ -93,9 +93,9 @@ app.use(
 
 app.use("/api/v1/admin/docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
-app.use((_req: Request, res: Response, _next: NextFunction) => {
-  authorize(_req, res, _next);
-});
+// app.use((_req: Request, res: Response, _next: NextFunction) => {
+//   authorize(_req, res, _next);
+// });
 
 routes(app);
 
@@ -115,7 +115,6 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 const startServer = async () => {
   try {
-    await mongoDBUtils.connect();
     await redisUtils.connect();
 
     app.listen(environment.port, () => {

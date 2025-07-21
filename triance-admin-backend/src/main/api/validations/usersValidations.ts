@@ -25,7 +25,7 @@ const userValidation = {
       first_name: Joi.string()
         .min(3)
         .max(20)
-        .required()
+        .optional()
         .error(new Error(ErrorCodes.users.USER00003.errorMessage)),
 
       last_name: Joi.string()
@@ -43,10 +43,10 @@ const userValidation = {
 
       dob: Joi.date().iso().allow("", null).optional(),
 
-      email_id: Joi.string().email().min(3).max(50).required(),
+      email_id: Joi.string().email().min(3).max(50).optional(),
 
 
-      role_id: Joi.string().required(),
+      role_id: Joi.string().optional(),
 
       password: Joi.string().min(3).max(200).optional(),
 

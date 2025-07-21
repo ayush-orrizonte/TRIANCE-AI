@@ -1,121 +1,140 @@
-import pg, { Pool, PoolConfig, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import pg, { Pool, PoolConfig, QueryResultRow } from 'pg';
 import fs from 'fs';
-import envUtils from "../config/envUtils";
+import { environment } from '../../../config/environment';
 
-interface PgParams extends PoolConfig {
-    ssl?: {
-        ca: Buffer;
-    };
+class DatabaseError extends Error {
+  constructor(message: string, public originalError?: unknown) {
+    super(message);
+    this.name = 'DatabaseError';
+  }
 }
 
 interface QueryOptions {
-    query: string;
-    params?: any[];
-}
-
-const connectionRequired = envUtils.getBooleanEnvVariableOrDefault("INIT_COMMON_PG_DB_REQUIRED", false);
-const tlsEnabled = envUtils.getBooleanEnvVariableOrDefault("INIT_COMMON_MASTER_TLS", false);
-const tlsPath = envUtils.getStringEnvVariable("INIT_COMMON_MASTER_TLS_PATH");
-
-const params: PgParams = {
-    user: envUtils.getStringEnvVariableOrDefault("INIT_COMMON_MASTER_USER", "postgres"),
-    database: envUtils.getStringEnvVariableOrDefault("INIT_COMMON_MASTER_DATABASE", "postgres"),
-    password: envUtils.getStringEnvVariableOrDefault("INIT_COMMON_MASTER_PASSWORD", "postgres"),
-    host: envUtils.getStringEnvVariableOrDefault("INIT_COMMON_MASTER_HOST", "localhost"),
-    port: envUtils.getNumberEnvVariableOrDefault("INIT_COMMON_MASTER_PORT", 5432),
-    max: 1,
-    idleTimeoutMillis: envUtils.getNumberEnvVariableOrDefault("INIT_COMMON_PG_TIMEOUT", 10000)
-};
-
-if (tlsEnabled && tlsPath) {
-    params.ssl = {
-        ca: fs.readFileSync(tlsPath)
-    };
+  text: string;
+  values?: any[];
+  timeout?: number; // in ms
 }
 
 class PgClient {
-    private static instance: PgClient;
-    private pool: Pool | null = null;
+  private static instance: PgClient;
+  private pool: Pool;
 
-    private constructor() {
-        if (connectionRequired) {
-            this.pool = new pg.Pool(params);
-        }
+  private constructor() {
+    const config = environment.postgres;
+
+    if (!config.connectionRequired) {
+      throw new DatabaseError(
+        'Database connection is disabled. Set INIT_COMMON_PG_DB_REQUIRED=true to enable.'
+      );
     }
 
-    public static getInstance(): PgClient {
-        if (!PgClient.instance) {
-            PgClient.instance = new PgClient();
-        }
-        return PgClient.instance;
+    const poolParams: PoolConfig = {
+      user: config.user,
+      password: config.password,
+      host: config.host,
+      database: config.database,
+      port: config.port,
+      max: config.poolSize,
+      idleTimeoutMillis: config.timeout,
+      connectionTimeoutMillis: 5000,
+    };
+
+    if (config.tlsEnabled && config.tlsPath) {
+      poolParams.ssl = {
+        ca: fs.readFileSync(config.tlsPath),
+      };
     }
 
-    public async executeQuery<T extends QueryResultRow = any>(
-  query: string | { text: string; values?: any[] },
-  params?: any[]
-): Promise<T[]> {
-  if (!this.pool) {
-    throw new Error("Database pool not initialized");
+    this.pool = new pg.Pool(poolParams);
+
+    this.pool.on('connect', () => console.log('[PG] New client connected'));
+    this.pool.on('error', (err) => console.error('[PG] Pool error:', err));
   }
 
-  const client = await this.pool.connect();
-  try {
-    let result: QueryResult<T>;
-
-    if (typeof query === 'string') {
-      result = await client.query<T>(query, params);
-    } else {
-      result = await client.query<T>(query.text, query.values);
+  public static getInstance(): PgClient {
+    if (!PgClient.instance) {
+      PgClient.instance = new PgClient();
     }
-
-    return result.rows;
-  } finally {
-    client.release();
+    return PgClient.instance;
   }
-}
 
+  public async executeQuery<T extends QueryResultRow = any>(
+    query: string | QueryOptions,
+    params?: any[]
+  ): Promise<T[]> {
+    if (!this.pool) {
+      throw new DatabaseError('Database pool is not initialized');
+    }
 
-    public async executeTransaction(queries: QueryOptions[]): Promise<void> {
-        if (!this.pool) {
-            throw new Error("Database pool not initialized");
-        }
+    const client = await this.pool.connect();
+    const isOptions = typeof query !== 'string';
+    const queryText = isOptions ? query.text : query;
+    const queryParams = isOptions ? query.values : params;
+    const timeout = isOptions && query.timeout ? query.timeout : undefined;
 
-        const client = await this.pool.connect();
+    try {
+      console.debug('[PG] Executing Query:', queryText, queryParams);
+
+      if (timeout) {
+        await client.query(`SET statement_timeout TO ${timeout}`);
+      }
+
+      const start = Date.now();
+      const result = await client.query<T>(queryText, queryParams);
+      const duration = Date.now() - start;
+      console.debug(`[PG] Query executed in ${duration}ms`);
+
+      return result.rows;
+    } catch (error) {
+      console.error('[PG] Query execution failed:', error);
+      throw new DatabaseError('Query execution failed', error);
+    } finally {
+      if (timeout) {
         try {
-            await client.query('BEGIN');
-            
-            for (const { query, params } of queries) {
-                await client.query(query, params);
-            }
-            
-            await client.query('COMMIT');
-        } catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        } finally {
-            client.release();
+          await client.query(`RESET statement_timeout`);
+        } catch (resetError) {
+          console.warn('[PG] Failed to reset statement_timeout:', resetError);
         }
+      }
+      client.release();
     }
+  }
 
-    public async healthCheck(): Promise<boolean> {
-        if (!this.pool) {
-            return false;
+  public async executeTransaction(queries: QueryOptions[]): Promise<void> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (const query of queries) {
+        if (query.timeout) {
+          await client.query(`SET statement_timeout TO ${query.timeout}`);
         }
-        
-        try {
-            const client = await this.pool.connect();
-            client.release();
-            return true;
-        } catch {
-            return false;
-        }
+        await client.query(query.text, query.values);
+      }
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw new DatabaseError('Transaction failed', error);
+    } finally {
+      client.release();
     }
+  }
 
-    public getPool(): Pool | null {
-        return this.pool;
+  public async healthCheck(): Promise<boolean> {
+    try {
+      const result = await this.executeQuery<{ ok: number }>('SELECT 1 AS ok');
+      return result.length === 1 && result[0].ok === 1;
+    } catch {
+      return false;
     }
+  }
+
+  public async close(): Promise<void> {
+    if (this.pool) {
+      await this.pool.end();
+      console.log('[PG] Pool closed');
+    }
+  }
 }
 
 const pgClient = PgClient.getInstance();
-
 export default pgClient;

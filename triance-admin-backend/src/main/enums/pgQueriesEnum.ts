@@ -5,12 +5,63 @@ export enum UserQueries {
   UPDATE_USER_STATUS = `UPDATE m_users SET status = $2, updated_by = $3, date_updated = NOW() WHERE user_id = $1`,
   EXISTS_BY_MOBILE_NUMBER = `SELECT EXISTS (SELECT 1 FROM m_users WHERE mobile_number = $1 AND status <> 2)`,
   EXISTS_BY_USER_ID = `SELECT EXISTS (SELECT 1 FROM m_users WHERE user_id = $1)`,
-  CREATE_USER = `INSERT INTO m_users(user_name, first_name, last_name, display_name,  mobile_number, password, role_id, email_id, created_by, updated_by, date_created, date_updated)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,  NOW(), NOW()) RETURNING user_id`,
+  CREATE_USER = `INSERT INTO m_users(user_name, first_name, last_name, display_name, dob, gender, mobile_number, password, role_id, email_id, created_by, updated_by, date_created, date_updated)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW()) RETURNING user_id`,
   UPDATE_USER = `UPDATE m_users SET first_name = $2, last_name = $3, dob = $4, gender = $5, email_id = $6, updated_by = $7, role_id = $8, display_name = $9, date_updated = NOW() WHERE user_id = $1`,
   GET_USERS_BY_ROLE_ID = `SELECT user_id, user_name, initcap(display_name) as display_name, mobile_number from m_users where role_id = $1 AND status <> 2`,
   RESET_PASSWORD_FOR_USER_ID = `UPDATE m_users SET password = $2, password_last_updated = NOW(), date_updated = NOW() WHERE user_id = $1`,
   USERS_COUNT = `SELECT count(*) as count from vw_m_users WHERE status <> 2`,
+}
+
+export enum AdminQueries {
+  CREATE_ADMIN = `INSERT INTO m_admin(
+  admin_name, admin_email, password,  
+  invalid_login_attempts, status, role_id, level
+) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING admin_id`,
+
+ADMINS_LIST = `SELECT 
+  admin_id, admin_name, admin_email, profile_picture, 
+  lastLogin_time, invalid_login_attempts, status, role_id, level 
+FROM m_admin 
+ORDER BY admin_name`,
+
+GET_ADMIN_BY_ID = `SELECT 
+  admin_id, admin_name, admin_email, profile_picture, 
+  lastLogin_time, invalid_login_attempts, status, role_id, level 
+FROM m_admin 
+WHERE admin_id = $1`,
+
+UPDATE_ADMIN_STATUS = `UPDATE m_admin 
+SET status = $1 
+WHERE admin_id = $2 
+RETURNING admin_id, status`,
+
+EXISTS_BY_ADMIN_ID = `SELECT 1 
+FROM m_admin 
+WHERE admin_id = $1`,
+
+UPDATE_ADMIN = `UPDATE m_admin 
+SET 
+  admin_name = $1, 
+  admin_email = $2, 
+  profile_picture = $3, 
+  role_id = $4, 
+  level = $5 
+WHERE admin_id = $6 
+RETURNING admin_id`,
+
+GET_ADMIN_BY_ROLE_ID = `SELECT 
+  admin_id, admin_name, admin_email, profile_picture, 
+  lastLogin_time, invalid_login_attempts, status, role_id, level 
+FROM m_admin 
+WHERE role_id = $1 
+ORDER BY admin_name`,
+RESET_PASSWORD_FOR_ADMIN_ID = `UPDATE m_admin 
+SET password = $1 
+WHERE admin_id = $2 
+RETURNING admin_id`,
+ADMINS_COUNT = `SELECT COUNT(admin_id) 
+FROM m_admin`
 }
 
 export enum MenuQueries {

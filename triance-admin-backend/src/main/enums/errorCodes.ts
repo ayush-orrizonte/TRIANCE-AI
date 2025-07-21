@@ -139,7 +139,7 @@ const password_policies = {
     errorMessage: "Password Policy Id Required!",
   },
 }
-   const Admin = {
+   const admins = {
   ADMIN000: {
     errorCode: "ADMIN000",
     errorMessage: "Internal Server Error",
@@ -176,4 +176,4 @@ const password_policies = {
 
 
 
-export { menus, password_policies, users, roles ,Admin };
+export { menus, password_policies, users, roles ,admins };

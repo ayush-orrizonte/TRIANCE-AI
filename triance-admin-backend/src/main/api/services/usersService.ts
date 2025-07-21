@@ -7,13 +7,16 @@ import {
   MailerUtils,
   EjsUtils,
 } from "../../triance-commons";
-import { IUser, IPasswordPolicy } from "../../types/custom";
-import usersRepository from "../repositories/usersRepository";
+import { IUser, IPasswordPolicy, IAdmin } from "../../types/custom";
 // import { rolesRepository } from "../repositories";
 import { UserStatus } from "../../enums/status";
 import passwordPoliciesService from "../services/passwordPoliciesService";
 import RandExp from "randexp";
 import bcrypt from "bcryptjs";
+import pgClient from "../../triance-commons/src/database/pg";
+import { pgQueries } from "../../enums"; 
+import { PoolClient } from 'pg';
+
 
 
 
@@ -26,63 +29,92 @@ const redisUtils = RedisUtils.getInstance();
 const mailerUtils = MailerUtils.getInstance();
 
 const usersService = {
-  createUser: async (user: IUser) => {
-    const logPrefix = `usersService :: createUser :: user :: ${JSON.stringify(
-      user
-    )} `;
-    const capitalize = (str: string): string =>
-      str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  createUser: async (user: IAdmin) => {
+    const logPrefix = `usersService :: createUser`;
+    let transactionClient: PoolClient | null | undefined = null;
+    
     try {
-      const passwordPolicies =
-        await passwordPoliciesService.listPasswordPolicies();
-            if (!passwordPolicies || passwordPolicies.length === 0) {
-        const message = "No password policies found";
-        logger.error(`${logPrefix} :: ${message}`);
-        return { success: false, message };
+        transactionClient = await pgClient.getPool()?.connect();
+        if (!transactionClient) {
+            throw new Error("Database connection failed");
         }
-      const passwordPolicy = passwordPolicies[0];
 
-      const { encryptedPassword, plainPassword } =
-        await usersService.generatePasswordFromPasswordPolicy(passwordPolicy);
-      user.password = encryptedPassword;
-      user.display_name = capitalize(user.first_name.trim());
-      user.user_name = user.mobile_number.toString();
-      user.status = UserStatus.ACTIVE;
-      const userId = await usersRepository.createUser(user);
+        await transactionClient.query('BEGIN');
 
-      if (!userId) {
-        const message = "Failed to create user in the database";
-        logger.error(`${logPrefix} :: ${message}`);
-        return { success: false, message };
-      }
-      logger.info(
-        `${logPrefix} :: User created successfully with ID ${userId}`
-      );
-
-    //   await usersService.clearRedisCache(userId, user.mobile_number);
-
-      const emailTemplateHtml = await EjsUtils.generateHtml(
-        "src/main/views/generic_template.ejs",
-        {
-          name: user.first_name,
-          body: "Password has been generated for you",
-          password: plainPassword,
-          footer: "Please use this password to login into the system.",
+        // Generate password and prepare user data
+        const passwordPolicies = await passwordPoliciesService.listPasswordPolicies();
+        if (!passwordPolicies || passwordPolicies.length === 0) {
+            throw new Error("No password policies found");
         }
-      );
 
-      await mailerUtils.sendEmail(
-        "Triance | Login Details",
-        emailTemplateHtml,
-        user.email_id
-      );
+        const { encryptedPassword, plainPassword } = 
+            await usersService.generatePasswordFromPasswordPolicy(passwordPolicies[0]);
+        
+        const userToCreate = {
+            ...user,
+            password: encryptedPassword,
+            status: UserStatus.ACTIVE
+        };
 
-      return { success: true, userId };
-    } catch (error: unknown) {
-    if (isError(error)) {
-        logger.error(`${logPrefix} :: Error :: ${error.message}`);
-        throw new Error(error.message);
-    }}
+        // Create user
+        const result = await transactionClient.query<{ admin_id: number }>({
+            text: pgQueries.AdminQueries.CREATE_ADMIN,
+            values: [
+                userToCreate.admin_name,
+                userToCreate.admin_email,
+                userToCreate.password,
+                userToCreate.profile_picture || null,
+                new Date().toISOString(),
+                userToCreate.invalidlogin_attempts || 0,
+                userToCreate.status,
+                userToCreate.role_id,
+                userToCreate.level
+            ]
+        });
+
+        if (result.rowCount === 0) {
+            throw new Error("User creation failed");
+        }
+
+        const adminId = result.rows[0].admin_id;
+
+        // Send email
+        const emailTemplateHtml = await EjsUtils.generateHtml(
+            "src/main/views/generic_template.ejs",
+            {
+                name: user.admin_name,
+                body: "Password has been generated for you",
+                password: plainPassword,
+                footer: "Please use this password to login into the system.",
+            }
+        );
+
+        await mailerUtils.sendEmail(
+            "Triance | Login Details",
+            emailTemplateHtml,
+            user.admin_email
+        );
+
+        await transactionClient.query('COMMIT');
+        
+        return { success: true, userId: adminId };
+    } catch (error) {
+        if (transactionClient) {
+            await transactionClient.query('ROLLBACK').catch(rollbackError => {
+                logger.error(`${logPrefix} :: Rollback failed`, rollbackError);
+            });
+        }
+        
+        logger.error(`${logPrefix} :: Error`, error);
+        return { 
+            success: false, 
+            message: error instanceof Error ? error.message : "Unknown error occurred"
+        };
+    } finally {
+        if (transactionClient) {
+            transactionClient.release();
+        }
+    }
 },
 generatePasswordFromPasswordPolicy: async (
   passwordPolicy: IPasswordPolicy

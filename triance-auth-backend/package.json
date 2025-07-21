@@ -1,5 +1,5 @@
 {
-  "name": "gm-auth-backend",
+  "name": "triance-auth-backend",
   "version": "1.0.0",
   "description": "Service managing Authentication and Authorization",
   "main": "src/main/app.ts",
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chalukyamohanrajwadhwani/guru-mitra.git"
+    "url": "git+https://github.com/ayush-orrizonte/TRIANCE-AI.git"
   },
-  "author": "Chalukya Mohanraj",
+  "author": "`",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/chalukyamohanrajwadhwani/guru-mitra/issues"
+    "url": "https://github.com/ayush-orrizonte/TRIANCE-AI/issues"
   },
-  "homepage": "https://github.com/chalukyamohanrajwadhwani/guru-mitra#readme",
+  "homepage": "https://github.com/ayush-orrizonte/TRIANCE-AI/blob/main/README.md",
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.7.5",
@@ -28,7 +28,8 @@
     "@types/node": "^22.10.5",
     "@types/swagger-ui-express": "^4.1.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "triance-commons": "file:../../triance-commons"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -38,7 +39,6 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-fileupload": "^1.5.1",
-    "gm-commons": "git+https://chalukyamohanrajwadhwani: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@github.com/chalukyamohanrajwadhwani/commons#v1.0.9",
     "helmet": "^8.0.0",
     "joi": "^17.13.3",
     "moment": "^2.30.1",
@@ -58,16 +58,19 @@
     "env": {
       "PORT": 5001,
       "HOST": "localhost",
-      "MODULE": "gm-auth-backend",
-      "REDIS_HOST": "gurumitra.wadhwanifoundation.org",
-      "MONGODB_HOST": "dev.orrizonte.in",
-      "MONGODB_USERNAME": "dev",
-      "MONGODB_PASSWORD": "VfcqYLH43iXLuNK7",
-      "MONGODB_NAME": "guru_mitra",
+      "MODULE": "triance-auth-backend",
+      "INIT_COMMON_PG_DB_REQUIRED": true,
+      "INIT_COMMON_MASTER_HOST": "dev.orrizonte.in",
+      "INIT_COMMON_MASTER_USER": "dev",
+      "INIT_COMMON_MASTER_DATABASE": "triance_ai",
+      "INIT_COMMON_MASTER_PASSWORD": "zQrBoxTNZffPZLak",
+      "INIT_COMMON_MASTER_PORT": 5432,
+      "REDIS_HOST": "dev.orrizonte.in",
+      "REDIS_PORT": 6379,
       "LOG_LEVEL": "info",
-      "REDIS_KEY_PREFIX": "dev|guru_mitra|",
-      "NODEMAILER_USER": "gurumitrawadhwanifoundation@gmail.com",
-      "NODEMAILER_PASSWORD": "kfdvtcszqzccahsy",
+      "REDIS_KEY_PREFIX": "dev|triance_ai|",
+      "NODEMAILER_USER": "infotempleseva@gmail.com",
+      "NODEMAILER_PASSWORD": "kghr tqid jogn kibv",
       "NODEMAILER_HOST": "smtp.gmail.com",
       "NODEMAILER_SERVICE": "gmail",
       "NODEMAILER_PORT": 465,
