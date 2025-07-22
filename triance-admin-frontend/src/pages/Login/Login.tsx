@@ -35,7 +35,7 @@ const Login: React.FC = () => {
       const encryptedPassword = encDec.encrypt(values.password);
       const response = await loginService.loginWithPassword(
         values.email_id,
-        encryptedPassword
+        values.password 
       );
 
       if (response.data && response.data.data) {

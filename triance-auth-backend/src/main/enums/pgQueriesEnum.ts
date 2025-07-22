@@ -24,7 +24,7 @@ export enum adminQueries {
     RETURNING invalid_login_attempts
   `,
 
-  /** ✅ Reset Invalid Login Attempts */
+  /** ? Reset Invalid Login Attempts */
   RESET_INVALID_LOGIN = `
     UPDATE m_admin
     SET invalid_login_attempts = 0
@@ -54,3 +54,4 @@ export enum adminQueries {
     ORDER BY admin_name
   `
 }
+

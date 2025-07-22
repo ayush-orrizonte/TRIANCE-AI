@@ -24,6 +24,7 @@ const adminController = {
   
   login: async (req: Request, res: Response): Promise<void> => {
     const loginRequest: { email: string; password: string } = req.body;
+    console.log("------------------", req.body);
     const logPrefix = `login :: ${JSON.stringify(loginRequest)}`;
     
     try {
@@ -52,6 +53,7 @@ const adminController = {
       // }
 
       const admin = await adminService.getAdminByEmail(loginRequest.email);
+      
       if (!admin) {
         res.status(HttpStatusCodes.BAD_REQUEST).json({
           code: ErrorCodes.Admin.ADMIN001,
@@ -60,15 +62,12 @@ const adminController = {
         return;
       }
 
-      // if (environment.decryptSensitiveData) {
-      //   loginRequest.password = encDecHelper.decryptPayload(loginRequest.password);
-      // }
+      // loginRequest.password = encDecHelper.decryptPayload(loginRequest.password);
+
+
 
       const passwordPolicy = await adminService.getPasswordPolicy();
-      const isPasswordValid = await bcrypt.compare(
-        loginRequest.password,
-        admin.password
-      );
+      const isPasswordValid = await bcrypt.compare(loginRequest.password, admin.password);
 
       if (!isPasswordValid) {
         if (admin.invalidlogin_attempts < passwordPolicy.maximumInvalidAttempts) {
@@ -79,10 +78,10 @@ const adminController = {
           });
           return;
         } else {
-          await adminService.updateAdminStatus(
-            AdminStatus.INACTIVE,
-            admin.admin_email
-          );
+          // await adminService.updateAdminStatus(
+          //   AdminStatus.INACTIVE,
+          //   admin.admin_email
+          // );
           const emailTemplateHtml = await EjsUtils.generateHtml(
             "src/main/views/generic_template.ejs",
             {
@@ -108,7 +107,7 @@ const adminController = {
         id: admin.admin_id,
         name: admin.admin_name,
         email: admin.admin_email,
-        role_id: admin.role_id,
+        role_id: Number(admin.role_id),
         level: admin.level !== undefined ? String(admin.level) : "",
         adminEmail: admin.admin_email,
       };

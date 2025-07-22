@@ -2,7 +2,7 @@ import { EnvUtils } from "../../main/triance-commons";
 
 const environment = {
   port: EnvUtils.getNumber("PORT", 5001),
-
+  decryptSensitiveData: true,
   allowedOrigins: EnvUtils.getString("ALLOWED_ORIGINS", "*"),
   allowedMethods: EnvUtils.getString(
     "ALLOWED_METHODS",
@@ -18,7 +18,6 @@ const environment = {
   allowedFileUploadSize: EnvUtils.getNumber("ALLOWED_FILE_SIZE", 5 * 1024 * 1024),
   fileUploadDirectory: EnvUtils.getString("FILE_UPLOAD_DIRECTORY", "/tmp/"),
 
-  decryptSensitiveData: EnvUtils.getBoolean("GM_DECRYPT_SENSITIVE_DATA", true),
   cryptoEncryptionKey: EnvUtils.getString("CRYPTO_ENCRYPTION_KEY", "GM@$#&*(!@%^&"),
   secretKey: EnvUtils.getString("GM_SECRET_KEY", "GM_2025"),
 
