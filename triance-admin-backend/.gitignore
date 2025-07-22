@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.log
+.vscode/
+# Secrets
+.env
+.env.local
+*.env
+environment.ts
