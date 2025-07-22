@@ -1,0 +1,1135 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "triance-admin-backend",
+    "description": "API Swagger for triance-admin-backend",
+    "version": "1.0.0"
+  },
+  "host": "localhost:5003",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/api/v1/admin/health": {
+      "get": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/admin/create": {
+      "post": {
+        "tags": [
+          "Admins"
+        ],
+        "summary": "Add Admin",
+        "description": "Endpoint to Add Admin",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "admin_name": {
+                  "type": "string",
+                  "example": "Admin User"
+                },
+                "admin_email": {
+                  "type": "string",
+                  "example": "admin@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "securePassword123"
+                },
+                "role_id": {
+                  "type": "string",
+                  "example": "1"
+                },
+                "level": {
+                  "type": "string",
+                  "example": "super"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/admin/update": {
+      "post": {
+        "tags": [
+          "Admins"
+        ],
+        "summary": "Update Admin",
+        "description": "Endpoint to Update Admin",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "admin_id": {
+                  "type": "string",
+                  "example": "encryptedHash"
+                },
+                "admin_name": {
+                  "type": "string",
+                  "example": "Admin User"
+                },
+                "admin_email": {
+                  "type": "string",
+                  "example": "admin@example.com"
+                },
+                "role_id": {
+                  "type": "string",
+                  "example": "1"
+                },
+                "level": {
+                  "type": "string",
+                  "example": "super"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/admin/list/{roleId}": {
+      "get": {
+        "tags": [
+          "Admins"
+        ],
+        "summary": "List Admins",
+        "description": "Endpoint to Retrieve Admins List By Role Id",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/admin/list": {
+      "post": {
+        "tags": [
+          "Admins"
+        ],
+        "summary": "List Admins",
+        "description": "Endpoint to Retrieve Admins List",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "page_size": {
+                  "type": "number",
+                  "example": 50
+                },
+                "current_page": {
+                  "type": "number",
+                  "example": 1
+                },
+                "search_query": {
+                  "type": "string",
+                  "example": "admin@example.com"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/admin/{adminId}": {
+      "get": {
+        "tags": [
+          "Admins"
+        ],
+        "summary": "Get Admin",
+        "description": "Endpoint to Retrieve Admin Information By Admin Id",
+        "parameters": [
+          {
+            "name": "adminId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/admin/resetPassword/{adminId}": {
+      "post": {
+        "tags": [
+          "Admins"
+        ],
+        "summary": "Reset Admin Password",
+        "description": "Endpoint to Reset Admin Password",
+        "parameters": [
+          {
+            "name": "adminId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/admin/updateStatus": {
+      "post": {
+        "tags": [
+          "Admins"
+        ],
+        "summary": "Update Admin Status",
+        "description": "Update Admin Status by Admin Id and Status",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "admin_id": {
+                  "type": "string",
+                  "example": "encryptedHash"
+                },
+                "status": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/admin/updateLoginAttempts": {
+      "post": {
+        "tags": [
+          "Admins"
+        ],
+        "summary": "Update Admin Login Attempts",
+        "description": "Update Admin Invalid Login Attempts Count",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "admin_id": {
+                  "type": "string",
+                  "example": "encryptedHash"
+                },
+                "invalidlogin_attempts": {
+                  "type": "number",
+                  "example": 2
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/admin/updateLastLogin": {
+      "post": {
+        "tags": [
+          "Admins"
+        ],
+        "summary": "Update Admin Last Login",
+        "description": "Update Admin Last Login Timestamp",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "admin_id": {
+                  "type": "string",
+                  "example": "encryptedHash"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/menus/add": {
+      "post": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "Create Menu",
+        "description": "Endpoint to create a new Menu",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "menuName": {
+                  "type": "string",
+                  "example": "Categories"
+                },
+                "menuDescription": {
+                  "type": "string",
+                  "example": "Menu to manage categories"
+                },
+                "menuOrder": {
+                  "type": "number",
+                  "example": 1
+                },
+                "routeUrl": {
+                  "type": "string",
+                  "example": "/categories"
+                },
+                "iconClass": {
+                  "type": "string",
+                  "example": "fa fa-menu"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/menus/update": {
+      "post": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "Update Menu",
+        "description": "Endpoint to update an existing Menu",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "menuId": {
+                  "type": "string",
+                  "example": "uuid-string"
+                },
+                "menuName": {
+                  "type": "string",
+                  "example": "Categories"
+                },
+                "menuDescription": {
+                  "type": "string",
+                  "example": "Menu to manage categories"
+                },
+                "menuOrder": {
+                  "type": "number",
+                  "example": 1
+                },
+                "routeUrl": {
+                  "type": "string",
+                  "example": "/categories"
+                },
+                "iconClass": {
+                  "type": "string",
+                  "example": "fa fa-menu"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/menus/list": {
+      "get": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "List Menus",
+        "description": "Endpoint to retrieve Menus List",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Filter menus by active status (1 for active, 0 for inactive)"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/menus/{menuId}": {
+      "get": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "Get Menu By ID",
+        "description": "Endpoint to retrieve a Menu by ID",
+        "parameters": [
+          {
+            "name": "menuId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Menu ID to fetch"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/menus/updateStatus": {
+      "post": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "Update Menu Status",
+        "description": "Endpoint to update Menu status",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "menuId": {
+                  "type": "string",
+                  "example": "uuid-string"
+                },
+                "status": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/passwordPolicies/list": {
+      "get": {
+        "tags": [
+          "Password Policies"
+        ],
+        "summary": "List Password Policies",
+        "description": "Endpoint to list all Password Policies",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/passwordPolicies/add": {
+      "post": {
+        "tags": [
+          "Password Policies"
+        ],
+        "summary": "Add Password Policy",
+        "description": "Endpoint to create a new Password Policy",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "passwordExpiry": {
+                  "type": "number",
+                  "example": 90
+                },
+                "passwordHistory": {
+                  "type": "number",
+                  "example": 5
+                },
+                "minimumPasswordLength": {
+                  "type": "number",
+                  "example": 8
+                },
+                "complexity": {
+                  "type": "number",
+                  "example": 3
+                },
+                "alphabetical": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "numeric": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "specialCharacters": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "allowedSpecialCharacters": {
+                  "type": "string",
+                  "example": "!@#$%^&*()"
+                },
+                "maximumInvalidAttempts": {
+                  "type": "number",
+                  "example": 5
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/passwordPolicies/update": {
+      "post": {
+        "tags": [
+          "Password Policies"
+        ],
+        "summary": "Update Password Policy",
+        "description": "Endpoint to update an existing Password Policy",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "_id": {
+                  "type": "string",
+                  "example": "60fead1d5d3e2c001f8e4e72"
+                },
+                "minimumPasswordLength": {
+                  "type": "number",
+                  "example": 8
+                },
+                "complexity": {
+                  "type": "number",
+                  "example": 3
+                },
+                "alphabetical": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "numeric": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "specialCharacters": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "allowedSpecialCharacters": {
+                  "type": "string",
+                  "example": "!@#$%^&*()"
+                },
+                "maximumInvalidAttempts": {
+                  "type": "number",
+                  "example": 5
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/passwordPolicies/{passwordPolicyId}": {
+      "get": {
+        "tags": [
+          "Password Policies"
+        ],
+        "summary": "Get Password Policy By ID",
+        "description": "Endpoint to retrieve a Password Policy by ID",
+        "parameters": [
+          {
+            "name": "passwordPolicyId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "MongoDB ObjectId of the Password Policy"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/create": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Add User",
+        "description": "Endpoint to Add User",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "admin_name": {
+                  "type": "string",
+                  "example": "Rajesh"
+                },
+                "admin_email": {
+                  "type": "string",
+                  "example": "rajeshnayak899@gmail.com"
+                },
+                "role_id": {
+                  "type": "number",
+                  "example": 2
+                },
+                "level": {
+                  "type": "string",
+                  "example": "admin"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/list": {
+      "post": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "List Roles",
+        "description": "Endpoint to retrieve Roles List",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isActive": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "pageSize": {
+                  "type": "number",
+                  "example": 50
+                },
+                "currentPage": {
+                  "type": "number",
+                  "example": 1
+                },
+                "searchFilter": {
+                  "type": "string",
+                  "example": "Admin"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/add": {
+      "post": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Add Role",
+        "description": "Endpoint to create a new Role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "roleName": {
+                  "type": "string",
+                  "example": "Department Head"
+                },
+                "roleDescription": {
+                  "type": "string",
+                  "example": "Head of the Department"
+                },
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "menuId": {
+                        "type": "string",
+                        "example": "1"
+                      },
+                      "permissionId": {
+                        "type": "string",
+                        "example": "2"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/update": {
+      "post": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Update Role",
+        "description": "Endpoint to update an existing Role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "roleId": {
+                  "type": "string",
+                  "example": "2"
+                },
+                "roleName": {
+                  "type": "string",
+                  "example": "Department Head"
+                },
+                "roleDescription": {
+                  "type": "string",
+                  "example": "Head of the Department"
+                },
+                "status": {
+                  "type": "number",
+                  "example": 1
+                },
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "menuId": {
+                        "type": "string",
+                        "example": "1"
+                      },
+                      "permissionId": {
+                        "type": "string",
+                        "example": "2"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/menusList": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Get Menu List",
+        "description": "Endpoint to retrieve Menu List",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/defaultAccessList": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Get Default Access List",
+        "description": "Endpoint to retrieve Default Access List",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/combinedAccess": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Get Combined Access",
+        "description": "Endpoint to retrieve Combined Access",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/listLevels": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "List Levels",
+        "description": "Endpoint to List Levels",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/accessList/{roleId}": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Get Access List By Role Id",
+        "description": "Endpoint to retrieve Access List with Role Id",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Role ID for which to fetch access list"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/{roleId}": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Get Role By ID",
+        "description": "Endpoint to retrieve Role By ID",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,289 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "gm-auth-backend",
+    "description": "API Swagger for gm-auth-backend",
+    "version": "1.0.0"
+  },
+  "host": "localhost:5001",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/api/v1/auth/users/login": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "User Login",
+        "description": "Endpoint for User Login",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "emailId": {
+                  "type": "string",
+                  "example": "User@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "yourPassword"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/auth/users/logout": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Logout User",
+        "description": "Endpoint to Logout Users",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/auth/users/requestResetPassword": {
+      "post": {
+        "tags": [
+          "Teachers"
+        ],
+        "summary": "Request Reset Password",
+        "description": "Endpoint for Request Reset Password",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "emailId": {
+                  "type": "string",
+                  "example": "teacher@example.com"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/auth/users/resetPassword": {
+      "post": {
+        "tags": [
+          "Teachers"
+        ],
+        "summary": "Request Forgot Password",
+        "description": "Endpoint for Request Forgot Password",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "txnId": {
+                  "type": "string",
+                  "example": "uuid"
+                },
+                "newPassword": {
+                  "type": "string",
+                  "example": "encryptedPasswordHash"
+                },
+                "confirmPassword": {
+                  "type": "string",
+                  "example": "encryptedPasswordHash"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/auth/users/download-apk": {
+      "get": {
+        "description": "",
+        "responses": {
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/admins/login": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Admin Login",
+        "description": "Endpoint for Admin Login",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "admin@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "yourPassword"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/auth/admins/logout": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Logout Admin",
+        "description": "Endpoint to Logout Admin",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/auth/admins/requestResetPassword": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Request Reset Password",
+        "description": "Endpoint for Admin Reset Password Request",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "admin@example.com"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/auth/admins/resetPassword": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Reset Admin Password",
+        "description": "Endpoint for Admin Password Reset",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "txnId": {
+                  "type": "string",
+                  "example": "uuid"
+                },
+                "newPassword": {
+                  "type": "string",
+                  "example": "encryptedPasswordHash"
+                },
+                "confirmPassword": {
+                  "type": "string",
+                  "example": "encryptedPasswordHash"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/auth/health": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Health Check",
+        "description": "Endpoint to Health Check",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}

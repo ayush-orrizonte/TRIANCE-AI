@@ -1,24 +1,81 @@
 {
   "name": "triance-auth-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Service managing Authentication and Authorization",
+  "main": "src/main/app.ts",
   "scripts": {
-    "dev": "ts-node src/index.ts",
-    "build": "tsc",
+    "start": "nodemon --exec npx tsx src/main/app.ts",
+    "prestart": "npx tsx src/main/swagger/swagger.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ayush-orrizonte/TRIANCE-AI.git"
+  },
+  "author": "`",
   "license": "ISC",
-  "description": "",
+  "bugs": {
+    "url": "https://github.com/ayush-orrizonte/TRIANCE-AI/issues"
+  },
+  "homepage": "https://github.com/ayush-orrizonte/TRIANCE-AI/blob/main/README.md",
   "devDependencies": {
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.0.12",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.7.5",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/express-fileupload": "^1.5.1",
+    "@types/joi": "^17.2.2",
+    "@types/node": "^22.10.5",
+    "@types/swagger-ui-express": "^4.1.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.7.2",
+    "triance-commons": "file:../../triance-commons"
   },
   "dependencies": {
-    "dotenv": "^17.1.0",
-    "express": "^5.1.0"
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.5",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-fileupload": "^1.5.1",
+    "helmet": "^8.0.0",
+    "joi": "^17.13.3",
+    "moment": "^2.30.1",
+    "nodemailer": "^6.9.16",
+    "nodemon": "^3.1.9",
+    "swagger-autogen": "^2.23.7",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^11.0.3"
+  },
+  "nodemonConfig": {
+    "restartable": "rs",
+    "ignore": [
+      "node_modules/**/node_modules",
+      "src/main/swagger/swagger.json"
+    ],
+    "delay": "2000",
+    "env": {
+      "PORT": 5001,
+      "HOST": "localhost",
+      "MODULE": "triance-auth-backend",
+      "INIT_COMMON_PG_DB_REQUIRED": true,
+      "INIT_COMMON_MASTER_HOST": "dev.orrizonte.in",
+      "INIT_COMMON_MASTER_USER": "dev",
+      "INIT_COMMON_MASTER_DATABASE": "triance_ai",
+      "INIT_COMMON_MASTER_PASSWORD": "zQrBoxTNZffPZLak",
+      "INIT_COMMON_MASTER_PORT": 5432,
+      "REDIS_HOST": "dev.orrizonte.in",
+      "REDIS_PORT": 6379,
+      "LOG_LEVEL": "info",
+      "REDIS_KEY_PREFIX": "dev|triance_ai|",
+      "NODEMAILER_USER": "infotempleseva@gmail.com",
+      "NODEMAILER_PASSWORD": "kghr tqid jogn kibv",
+      "NODEMAILER_HOST": "smtp.gmail.com",
+      "NODEMAILER_SERVICE": "gmail",
+      "NODEMAILER_PORT": 465,
+      "JWT_SECRET": "GM2025",
+      "GM_DECRYPT_SENSITIVE_DATA": true
+    }
   }
 }

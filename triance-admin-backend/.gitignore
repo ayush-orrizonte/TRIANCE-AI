@@ -3,3 +3,7 @@ dist/
 .env
 *.log
 .vscode/
+# Secrets
+.env
+.env.local
+*.env
