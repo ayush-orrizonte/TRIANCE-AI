@@ -1,7 +1,7 @@
 import { TextInput, Button } from "@mantine/core";
 import React, { useState } from "react";
 import { Dropzone } from "@mantine/dropzone";
-import imagePlaceholder from "../../../assets/images/image_placeholder.svg";
+//import imagePlaceholder from "../../../assets/images/image_placeholder.svg";
 import ImageCropper from "../../../components/common/ImageCropper/ImageCropper";
 import profileValidation from "./validateProfileManagement";
 import { useForm, yupResolver } from "@mantine/form";
@@ -107,11 +107,8 @@ const ProfileManagement: React.FC<ProfileManagementProps> = ({
               className="h-40 w-40 rounded-full"
             />
           ) : (
-            <img
-              src={imagePlaceholder}
-              alt="Placeholder"
-              className="w-20 h-20"
-            />
+            // 
+            <h1>image placeholder</h1>
           )}
           <Dropzone
             onDrop={handleFileChange}

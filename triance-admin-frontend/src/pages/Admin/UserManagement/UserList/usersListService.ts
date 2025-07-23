@@ -36,7 +36,7 @@ const usersListService = {
     });
   },
   getUser: async (adminId: number): Promise<ApiResponse<any>> => {
-    return await get(` /api/v1/admin/${adminId}`);
+    return await get(`/api/v1/admin/${adminId}`);
   },
   addUser: async (
     admin_name: string,

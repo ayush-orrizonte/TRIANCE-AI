@@ -8,7 +8,7 @@ import rolesRouter from "../api/routes/rolesRouter";
 export default (app: Application) => {
   app.use("/api/v1/admin", adminRouter);
   app.use("/api/v1/menus", menusRouter);
-  app.use("/api/v1/passwordPolicies", passwordPoliciesRouter);
+  app.use("/api/v1/admin/passwordPolicies", passwordPoliciesRouter);
   app.use("/api/v1/users",usersRouter);
-  app.use("/api/v1/users",rolesRouter)
+  app.use("/api/v1/admin/roles",rolesRouter)
   };

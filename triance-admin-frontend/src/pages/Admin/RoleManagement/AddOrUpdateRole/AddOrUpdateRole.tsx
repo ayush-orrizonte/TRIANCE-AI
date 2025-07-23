@@ -83,9 +83,9 @@ const AddOrUpdateRole: React.FC<AddOrUpdateRoleProps> = ({
     }
   };
 
-  const getRole = async (roleId: number) => {
+  const getRole = async () => {
     try {
-      const response = await addOrUpdateRoleService.getRole(roleId);
+      const response = await addOrUpdateRoleService.getRole();
       log(LogLevel.INFO, "RoleList :: getRole", response.data);
       if (response.data && response.data.data) {
         form.setValues({
@@ -123,13 +123,14 @@ const AddOrUpdateRole: React.FC<AddOrUpdateRoleProps> = ({
         await listLevels();
 
         if (roleId) {
-          const [roleResponse, accessResponse] = await Promise.all([
-            addOrUpdateRoleService.getRole(roleId),
+          const [roleResponse] = await Promise.all([
+          
+
             addOrUpdateRoleService.getAccessList(roleId),
           ]);
 
           log(LogLevel.INFO, "RoleList :: getRole", roleResponse.data);
-          log(LogLevel.INFO, "RoleList :: getAccessList", accessResponse.data);
+        //  log(LogLevel.INFO, "RoleList :: getAccessList", accessResponse.data);
 
           if (roleResponse.data && roleResponse.data.data) {
             const role = roleResponse.data.data;
@@ -147,34 +148,7 @@ const AddOrUpdateRole: React.FC<AddOrUpdateRoleProps> = ({
             });
           }
 
-          if (accessResponse.data && accessResponse.data.data) {
-            const permissions: { menu_id: string; permission_id: string }[] =
-              [];
-            for (const access of accessResponse.data.data) {
-              if (
-                access.display_permission === 1 &&
-                access.read_permission === "1"
-              ) {
-                permissions.push({
-                  menu_id: access.menu_id,
-                  permission_id: "2",
-                });
-              } else if (
-                access.display_permission === 1 &&
-                access.write_permission === "1"
-              ) {
-                permissions.push({
-                  menu_id: access.menu_id,
-                  permission_id: "1",
-                });
-              }
-            }
-
-            form.setValues((prevValues: any) => ({
-              ...prevValues,
-              permissions: [...prevValues.permissions, ...permissions],
-            }));
-          }
+        
         }
       } catch (error) {
         log(LogLevel.ERROR, "AddOrUpdateRole :: fetchData", error);
@@ -183,6 +157,10 @@ const AddOrUpdateRole: React.FC<AddOrUpdateRoleProps> = ({
 
     fetchData();
   }, [roleId]);
+
+
+
+ 
 
   const getPermissions = (menuId: string) => {
     const access = form.values.permissions.find(
