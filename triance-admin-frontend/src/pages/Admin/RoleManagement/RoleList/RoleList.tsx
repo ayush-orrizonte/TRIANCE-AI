@@ -83,13 +83,13 @@ const RolesList = forwardRef<
   };
 
   const handleUpdateRoleStatus = async (
-    roleId: number,
+    role_id: number,
     status: RolesStatus
   ) => {
     try {
       const response = await rolesListService.updateRoleStatus(
-        roleId,
-        status.toString()
+        role_id,
+        status
       );
       log(LogLevel.INFO, "RoleList :: handleUpdateRoleStatus", response.data);
       listRoles();
@@ -181,7 +181,7 @@ const RolesList = forwardRef<
               size="sm"
               onChange={() =>
                 handleUpdateRoleStatus(
-                  row.roleId,
+                  row.role_id,
                   row.status === RolesStatus.ACTIVE
                     ? RolesStatus.INACTIVE
                     : RolesStatus.ACTIVE

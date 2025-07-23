@@ -7,7 +7,7 @@ const rolesListService = {
   },
   updateRoleStatus: async (
     role_id: number,
-    status: string
+    status: number
   ): Promise<ApiResponse<any>> => {
     return await post(`/api/v1/admin/roles/updateStatus`, {
       role_id: role_id,
