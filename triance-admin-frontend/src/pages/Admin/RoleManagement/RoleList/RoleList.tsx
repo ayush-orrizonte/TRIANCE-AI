@@ -5,7 +5,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { Button, Switch, Tooltip } from "@mantine/core";
 import CommonDataTable from "../../../../components/common/DataTable/CommonDataTable";
 import deleteIcon from "../../../../../src/assets/User_List_Icons/delete.svg";
-import searchIcon from  "../../../../../src/assets/User_List_Icons/search-icon.svg"
+import searchIcon from "../../../../../src/assets/User_List_Icons/search-icon.svg";
 import rolesListService from "./rolesListService";
 import { LogLevel } from "../../../../enums";
 import { useLogger } from "../../../../hooks";
@@ -20,7 +20,7 @@ const RolesList = forwardRef<
     refresh: () => void;
   },
   RolesListProps
->(({  }, ref) => {
+>(({}, ref) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [opened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
@@ -33,9 +33,6 @@ const RolesList = forwardRef<
   const { log } = useLogger();
   const rolesListRef = useRef<{ refresh: () => void } | null>(null);
 
-  
-  
-
   const handleEdit = (roleId: number) => {
     console.log("Editing Role ID:", roleId);
     openDrawer();
@@ -43,8 +40,8 @@ const RolesList = forwardRef<
   };
 
   const columns = [
-    { label: "Role", key: "roleName" },
-    { label: "Role Description", key: "roleDescription" },
+    { label: "Role", key: "role_name" },
+    { label: "Role Description", key: "role_description" },
     { label: "Actions", key: "actions" },
   ];
 
@@ -66,17 +63,19 @@ const RolesList = forwardRef<
   const listRoles = async () => {
     try {
       const payload = {
-        isActive: true,
-        pageSize: pageSize,
-        currentPage: currentPage,
+        is_active: true,
+        page_size: pageSize,
+        current_page: currentPage,
         searchFilter: searchFilter,
       };
       const response = await rolesListService.listRoles(payload);
       console.log("Fetched Roles:", response?.data?.data?.rolesList);
+
       log(LogLevel.INFO, "RoleList :: listRoles", response);
       if (response?.data?.data) {
-        setRoles(response.data.data.rolesList);
+        setRoles(response?.data?.data?.rolesList);
         setRolesCount(response.data.data.rolesCount);
+        console.log("set roles:", response.data.data.rolesList);
       }
     } catch (error) {
       log(LogLevel.ERROR, "RoleList :: listRoles", error);
@@ -205,9 +204,9 @@ const RolesList = forwardRef<
 
             <Tooltip label="Delete" withArrow>
               <button
-                onClick={() =>
-                  handleUpdateRoleStatus(row.roleId, RolesStatus.DELETED)
-                }
+                // onClick={() =>
+                //   handleUpdateRoleStatus(row.roleId, RolesStatus.DELETED)
+                // }
                 className="cursor-pointer"
               >
                 <img src={deleteIcon} alt="Delete" />

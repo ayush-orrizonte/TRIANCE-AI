@@ -1,3 +1,4 @@
+import { string } from "yup";
 import { ApiResponse, get, post } from "../../../../api";
 import { UserStatus } from "./usersListEnum";
 
@@ -12,14 +13,14 @@ const usersListService = {
       page_number: currentPage,
       search_query: searchQuery || undefined,
     };
-    return await post("/api/v1/admin/users/list", payload);
+    return await post("/api/v1/admin/list", payload);
   },
   updateUserStatus: async (
-    userId: string,
+    admin_id: string,
     status: UserStatus
   ): Promise<ApiResponse<any>> => {
-    return await post(`/api/v1/admin/users/updateStatus`, {
-      user_id: userId,
+    return await post(`/api/v1/admin/updateStatus`, {
+      admin_id: admin_id,
       status,
     });
   },
@@ -28,46 +29,41 @@ const usersListService = {
     currentPage: number,
     isActive: boolean
   ): Promise<ApiResponse<any>> => {
-    return await post("/api/v1/admin/roles/list", {
+    return await post("/api/v1/users/list", {
       page_size: pageSize,
       current_page: currentPage,
       is_active: isActive,
     });
   },
-  getUser: async (userId: number): Promise<ApiResponse<any>> => {
-    return await get(`/api/v1/admin/users/${userId}`);
+  getUser: async (adminId: number): Promise<ApiResponse<any>> => {
+    return await get(` /api/v1/admin/${adminId}`);
   },
   addUser: async (
-    first_Name: string,
-    last_Name: string,
-    mobile_number: string,
-    email_id: string,
-    role_id: any
+    admin_name: string,
+    level: string,
+    admin_email: string,
+    role_id: number
   ): Promise<ApiResponse<any>> => {
-    return await post("/api/v1/admin/users/create", {
-      first_name: first_Name,
-      last_name: last_Name,
-      mobile_number: mobile_number,
-      email_id: email_id,
+    return await post("/api/v1/admin/create", {
+      admin_name: admin_name,
+      level: level,
+      admin_email: admin_email,
       role_id: role_id,
     });
   },
   updateUser: async (
-    user_id: number,
-    firstName: string,
-    lastName: string,
-    mobileNumber: string,
-    email_id: string,
-
-    roleId: number
+    role_id: number,
+    admin_name: string,
+    admin_email: string,
+    admin_id: number,
+    level: string
   ): Promise<ApiResponse<any>> => {
-    return await post("/api/v1/admin/users/update", {
-      user_id: user_id,
-      first_name: firstName,
-      last_name: lastName,
-      mobile_number: mobileNumber,
-      email_id: email_id,
-      role_id: roleId,
+    return await post("/api/v1/admin/update", {
+      admin_name: admin_name,
+      level: level,
+      admin_email: admin_email,
+      role_id: role_id,
+      admin_id: admin_id,
     });
   },
 };

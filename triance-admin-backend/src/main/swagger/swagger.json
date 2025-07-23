@@ -30,6 +30,13 @@
         "description": "Endpoint to Add Admin",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -44,13 +51,9 @@
                   "type": "string",
                   "example": "admin@example.com"
                 },
-                "password": {
-                  "type": "string",
-                  "example": "securePassword123"
-                },
                 "role_id": {
-                  "type": "string",
-                  "example": "1"
+                  "type": "number",
+                  "example": 1
                 },
                 "level": {
                   "type": "string",
@@ -90,8 +93,8 @@
               "type": "object",
               "properties": {
                 "admin_id": {
-                  "type": "string",
-                  "example": "encryptedHash"
+                  "type": "number",
+                  "example": 11
                 },
                 "admin_name": {
                   "type": "string",
@@ -102,8 +105,8 @@
                   "example": "admin@example.com"
                 },
                 "role_id": {
-                  "type": "string",
-                  "example": "1"
+                  "type": "number",
+                  "example": 1
                 },
                 "level": {
                   "type": "string",
@@ -275,8 +278,8 @@
               "type": "object",
               "properties": {
                 "admin_id": {
-                  "type": "string",
-                  "example": "encryptedHash"
+                  "type": "number",
+                  "example": 11
                 },
                 "status": {
                   "type": "number",
@@ -393,23 +396,23 @@
             "schema": {
               "type": "object",
               "properties": {
-                "menuName": {
+                "menu_name": {
                   "type": "string",
                   "example": "Categories"
                 },
-                "menuDescription": {
+                "menu_description": {
                   "type": "string",
                   "example": "Menu to manage categories"
                 },
-                "menuOrder": {
+                "menu_order": {
                   "type": "number",
                   "example": 1
                 },
-                "routeUrl": {
+                "route_url": {
                   "type": "string",
                   "example": "/categories"
                 },
-                "iconClass": {
+                "icon_class": {
                   "type": "string",
                   "example": "fa fa-menu"
                 }
@@ -446,27 +449,27 @@
             "schema": {
               "type": "object",
               "properties": {
-                "menuId": {
-                  "type": "string",
-                  "example": "uuid-string"
-                },
-                "menuName": {
-                  "type": "string",
-                  "example": "Categories"
-                },
-                "menuDescription": {
-                  "type": "string",
-                  "example": "Menu to manage categories"
-                },
-                "menuOrder": {
+                "menu_id": {
                   "type": "number",
                   "example": 1
                 },
-                "routeUrl": {
+                "menu_name": {
+                  "type": "string",
+                  "example": "Categories"
+                },
+                "menu_description": {
+                  "type": "string",
+                  "example": "Menu to manage categories"
+                },
+                "menu_order": {
+                  "type": "number",
+                  "example": 1
+                },
+                "route_url": {
                   "type": "string",
                   "example": "/categories"
                 },
-                "iconClass": {
+                "icon_class": {
                   "type": "string",
                   "example": "fa fa-menu"
                 }
@@ -499,9 +502,7 @@
           {
             "name": "isActive",
             "in": "query",
-            "required": false,
-            "type": "string",
-            "description": "Filter menus by active status (1 for active, 0 for inactive)"
+            "type": "string"
           }
         ],
         "responses": {
@@ -523,8 +524,7 @@
             "name": "menuId",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "Menu ID to fetch"
+            "type": "string"
           },
           {
             "name": "Authorization",
@@ -532,6 +532,11 @@
             "required": true,
             "type": "string",
             "description": "JWT token for authentication"
+          },
+          {
+            "name": "menu_id",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {
@@ -564,8 +569,8 @@
               "type": "object",
               "properties": {
                 "menuId": {
-                  "type": "string",
-                  "example": "uuid-string"
+                  "type": "number",
+                  "example": 1
                 },
                 "status": {
                   "type": "number",
@@ -613,6 +618,13 @@
         "summary": "Add Password Policy",
         "description": "Endpoint to create a new Password Policy",
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
           {
             "name": "body",
             "in": "body",
@@ -826,15 +838,15 @@
             "schema": {
               "type": "object",
               "properties": {
-                "isActive": {
+                "is_active": {
                   "type": "boolean",
                   "example": true
                 },
-                "pageSize": {
+                "page_size": {
                   "type": "number",
                   "example": 50
                 },
-                "currentPage": {
+                "current_page": {
                   "type": "number",
                   "example": 1
                 },
@@ -844,6 +856,11 @@
                 }
               }
             }
+          },
+          {
+            "name": "role_id",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {
@@ -853,13 +870,13 @@
         }
       }
     },
-    "/api/v1/users/add": {
+    "/api/v1/users/updateStatus": {
       "post": {
         "tags": [
           "Roles"
         ],
-        "summary": "Add Role",
-        "description": "Endpoint to create a new Role",
+        "summary": "Update Role Status",
+        "description": "Endpoint to update Role Status",
         "parameters": [
           {
             "name": "Authorization",
@@ -875,26 +892,76 @@
             "schema": {
               "type": "object",
               "properties": {
-                "roleName": {
+                "role_id": {
+                  "type": "number",
+                  "example": 2
+                },
+                "status": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/users/add": {
+      "post": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Add Role",
+        "description": "Endpoint to create Role",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "JWT token for authentication"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "role_name": {
                   "type": "string",
                   "example": "Department Head"
                 },
-                "roleDescription": {
+                "role_description": {
                   "type": "string",
                   "example": "Head of the Department"
+                },
+                "level": {
+                  "type": "string",
+                  "example": "Admin"
                 },
                 "permissions": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
-                      "menuId": {
-                        "type": "string",
-                        "example": "1"
+                      "menu_id": {
+                        "type": "number",
+                        "example": 1
                       },
-                      "permissionId": {
-                        "type": "string",
-                        "example": "2"
+                      "permission_id": {
+                        "type": "number",
+                        "example": 2
                       }
                     }
                   }
@@ -916,7 +983,7 @@
           "Roles"
         ],
         "summary": "Update Role",
-        "description": "Endpoint to update an existing Role",
+        "description": "Endpoint to update Role",
         "parameters": [
           {
             "name": "Authorization",
@@ -932,17 +999,21 @@
             "schema": {
               "type": "object",
               "properties": {
-                "roleId": {
-                  "type": "string",
-                  "example": "2"
+                "role_id": {
+                  "type": "number",
+                  "example": 2
                 },
-                "roleName": {
+                "role_name": {
                   "type": "string",
                   "example": "Department Head"
                 },
-                "roleDescription": {
+                "role_description": {
                   "type": "string",
                   "example": "Head of the Department"
+                },
+                "level": {
+                  "type": "string",
+                  "example": "Admin"
                 },
                 "status": {
                   "type": "number",
@@ -953,13 +1024,13 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "menuId": {
-                        "type": "string",
-                        "example": "1"
+                      "menu_id": {
+                        "type": "number",
+                        "example": 1
                       },
-                      "permissionId": {
-                        "type": "string",
-                        "example": "2"
+                      "permission_id": {
+                        "type": "number",
+                        "example": 2
                       }
                     }
                   }
@@ -993,7 +1064,9 @@
           {
             "name": "isActive",
             "in": "query",
-            "type": "string"
+            "required": false,
+            "type": 1,
+            "description": "Filter by active status"
           }
         ],
         "responses": {
@@ -1040,6 +1113,11 @@
             "required": true,
             "type": "string",
             "description": "JWT token for authentication"
+          },
+          {
+            "name": "role_id",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {
@@ -1084,8 +1162,8 @@
             "name": "roleId",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "Role ID for which to fetch access list"
+            "type": "number",
+            "description": "ID of the role"
           },
           {
             "name": "Authorization",
@@ -1107,14 +1185,15 @@
         "tags": [
           "Roles"
         ],
-        "summary": "Get Role By ID",
-        "description": "Endpoint to retrieve Role By ID",
+        "summary": "Get Role",
+        "description": "Endpoint to retrieve Role Information",
         "parameters": [
           {
             "name": "roleId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "number",
+            "description": "ID of the role"
           },
           {
             "name": "Authorization",
