@@ -46,15 +46,16 @@ function App() {
 
   return (
     <Suspense fallback={<LoadingFallback />}>
+      <Header/>
   
       <div className="flex flex-col md:flex-row w-full">
          {isAuthenticated && (
-          <aside className="w-full md:w-[20%] hidden md:block ">
+          <aside className="w-full mt-20 md:w-[20%] hidden md:block ">
             <SideBarMenu />
           </aside>
         )}
         <main
-          className={`w-full md:w-[80%] ap-4 ${
+          className={`w-full  md:w-[80%] ap-4 ${
             isAuthenticated
               ? "md:w-[80%] sm:w-[100%] xs:w-[100%] pt-20 sm:pt-16 md:pt-20"
               : ""
