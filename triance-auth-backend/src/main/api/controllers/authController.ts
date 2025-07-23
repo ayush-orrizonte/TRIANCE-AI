@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { HttpStatusCodes } from "gm-commons";
+import { HttpStatusCodes } from "../../triance-commons";
 
 const authController = {
     healthCheck: (req: Request, res: Response): void => {
