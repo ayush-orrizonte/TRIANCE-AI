@@ -21,7 +21,12 @@ const adminController = {
         #swagger.tags = ['Admins']
         #swagger.summary = 'Add Admin'
         #swagger.description = 'Endpoint to Add Admin'
-        
+        #swagger.parameters['Authorization'] = {
+          in: 'header',
+          required: true,
+          type: 'string',
+          description: 'JWT token for authentication'
+        }
         #swagger.parameters['body'] = {
           in: 'body',
           required: true,
@@ -37,30 +42,30 @@ const adminController = {
       const adminData: IAdmin = req.body;
       logger.debug(`${logPrefix} :: Parsed parameters :: ${JSON.stringify(adminData)}`);
 
-      // const { error } = adminValidations.validateCreateAdmin(adminData);
-      // if (error) {
-      //   const errorMessage = error.details?.[0]?.message || error.message;
-      //   logger.warn(`${logPrefix} :: Validation error :: ${errorMessage}`);
-      //   res.status(HttpStatusCodes.BAD_REQUEST).send({
-      //     errorCode: ErrorCodes.admins.ADMIN000.errorCode,
-      //     errorMessage,
-      //   });
-      //   return;
-      // }
+      const { error } = adminValidations.validateCreateAdmin(adminData);
+      if (error) {
+        const errorMessage = error.details?.[0]?.message || error.message;
+        logger.warn(`${logPrefix} :: Validation error :: ${errorMessage}`);
+        res.status(HttpStatusCodes.BAD_REQUEST).send({
+          errorCode: ErrorCodes.admins.ADMIN000.errorCode,
+          errorMessage,
+        });
+        return;
+      }
 
-      // const roleExists = await rolesRepository.existsByRoleId(adminData.role_id);
-      // if (!roleExists) {
-      //   logger.warn(`${logPrefix} :: Role not found with ID ${adminData.role_id}`);
-      //   res.status(HttpStatusCodes.BAD_REQUEST).send(ErrorCodes.roles.ROLE00006);
-      //   return;
-      // }
+      const roleExists = await rolesRepository.existsByRoleId(adminData.role_id);
+      if (!roleExists) {
+        logger.warn(`${logPrefix} :: Role not found with ID ${adminData.role_id}`);
+        res.status(HttpStatusCodes.BAD_REQUEST).send(ErrorCodes.roles.ROLE00006);
+        return;
+      }
 
-      // const adminExists = await adminRepository.existsByAdminEmail(adminData.admin_email);
-      // if (adminExists) {
-      //   logger.warn(`${logPrefix} :: Admin email already exists`);
-      //   res.status(HttpStatusCodes.BAD_REQUEST).send(ErrorCodes.admins.ADMIN005);
-      //   return;
-      // }
+      const adminExists = await adminRepository.existsByAdminEmail(adminData.admin_email);
+      if (adminExists) {
+        logger.warn(`${logPrefix} :: Admin email already exists`);
+        res.status(HttpStatusCodes.BAD_REQUEST).send(ErrorCodes.admins.ADMIN005);
+        return;
+      }
 
       await adminService.createAdmin(adminData);
 
@@ -93,10 +98,10 @@ const adminController = {
           in: 'body',
           required: true,
           schema: {
-            admin_id: 'encryptedHash',
+            admin_id: 11,
             admin_name: 'Admin User',
             admin_email: 'admin@example.com',
-            role_id: '1',
+            role_id: 1,
             level: 'super'
           }
         }
@@ -383,7 +388,7 @@ const adminController = {
           in: 'body',
           required: true,
           schema: {
-            admin_id: 'encryptedHash',
+            admin_id: 11,
             status: 1
           }
         }
@@ -412,15 +417,15 @@ const adminController = {
         return;
       }
 
-      const decryptedAdminId = parseInt(encDecHelper.decryptPayload(admin_id));
-      const adminExists = await adminRepository.existsByAdminId(decryptedAdminId);
+      // const decryptedAdminId = parseInt(encDecHelper.decryptPayload(admin_id));
+      const adminExists = await adminRepository.existsByAdminId(admin_id);
       if (!adminExists) {
         logger.warn(`${logPrefix} :: Admin not found with ID ${admin_id}`);
         res.status(HttpStatusCodes.BAD_REQUEST).send(ErrorCodes.admins.ADMIN005);
         return;
       }
 
-      // await adminService.updateAdminStatus(decryptedAdminId, status, req.plainToken.id);
+      await adminService.updateAdminStatus(admin_id, status,11);
 
       logger.info(`${logPrefix} :: Admin status updated successfully`);
       res.status(HttpStatusCodes.OK).send({

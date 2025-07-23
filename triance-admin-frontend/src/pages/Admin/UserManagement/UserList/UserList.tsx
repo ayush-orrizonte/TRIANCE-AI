@@ -1,36 +1,21 @@
-import  { forwardRef, useEffect, useRef, useState } from "react";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
 import CommonDrawer from "../../../../components/common/Drawer/CommonDrawer";
 import { IconX } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
-import { Button, Tooltip } from "@mantine/core";
+import { Button, Switch, Tooltip } from "@mantine/core";
 import CommonDataTable from "../../../../components/common/DataTable/CommonDataTable";
 import { Column } from "../../../../components/common/DataTable/commonDataTableTypes";
 import editIcon from "../../../../assets/User_List_Icons/edit.svg";
 import deleteIcon from "../../../../assets/User_List_Icons/delete.svg";
-import searchIcon from "../../../../assets/User_List_Icons/search-icon.svg";
+import searchIcon from "../../../../assets/search-icon.svg";
 import AddOrUpdateUser from "../AddOrUpdateUser/AddOrUpdateUser";
-
-// Mock data and types
-interface IUser {
-  user_id: number;
-  display_name: string;
-  mobile_number: string;
-  email_id: string;
-  role_name: string;
-  status: UserStatus;
-}
-
-enum UserStatus {
-  ACTIVE = "active",
-  INACTIVE = "inactive",
-  DELETED = "deleted",
-  LOGGED_IN = "logged_in",
-  LOGGED_OUT = "logged_out",
-}
-
-interface UsersListProps {
-  // Add any props you need here
-}
+import usersListService from "./usersListService";
+import { useLogger } from "../../../../hooks";
+import { LogLevel } from "../../../../enums";
+import { IUser, UsersListProps } from "./usersListTypes";
+import { encDec } from "../../../../utils";
+import { UserStatus } from "./usersListEnum";
+import { debounce } from "lodash";
 
 const UserList = forwardRef<
   {
@@ -38,7 +23,8 @@ const UserList = forwardRef<
   },
   UsersListProps
 >((props, ref) => {
-  const [opened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
+  const [opened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure(false);
   const [users, setUsers] = useState<IUser[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -46,48 +32,8 @@ const UserList = forwardRef<
   const [userId, setUserId] = useState<number | null>(null);
   const userListRef = useRef<{ refresh: () => void } | null>(null);
 
-  const pageSize = 11;
-
-  // Mock data initialization
-  useEffect(() => {
-    const mockUsers: IUser[] = [
-      {
-        user_id: 1,
-        display_name: "John Doe",
-        mobile_number: "+1234567890",
-        email_id: "john.doe@example.com",
-        role_name: "Admin",
-        status: UserStatus.ACTIVE,
-      },
-      {
-        user_id: 2,
-        display_name: "Jane Smith",
-        mobile_number: "+1987654321",
-        email_id: "jane.smith@example.com",
-        role_name: "Manager",
-        status: UserStatus.INACTIVE,
-      },
-      {
-        user_id: 3,
-        display_name: "Robert Johnson",
-        mobile_number: "+1122334455",
-        email_id: "robert.j@example.com",
-        role_name: "Developer",
-        status: UserStatus.LOGGED_IN,
-      },
-      {
-        user_id: 4,
-        display_name: "Emily Davis",
-        mobile_number: "+1555666777",
-        email_id: "emily.d@example.com",
-        role_name: "Designer",
-        status: UserStatus.LOGGED_OUT,
-      },
-    ];
-
-    setUsers(mockUsers);
-    setUsersCount(mockUsers.length);
-  }, []);
+  const pageSize = 10;
+  const { log } = useLogger();
 
   const handleEdit = (userId: number) => {
     openDrawer();
@@ -97,47 +43,85 @@ const UserList = forwardRef<
   const closeSlider = () => {
     closeDrawer();
     setUserId(null);
-    // In static version, we don't refresh the list
+    handleListUsers();
   };
 
   const handleClose = () => {
     setUserId(null);
-    // In static version, we don't refresh the list
+
+    userListRef.current?.refresh();
   };
 
   const columns: Column[] = [
-    { label: "Name", key: "display_name" },
-    { label: "Mobile Number", key: "mobile_number" },
-    { label: "Email Address", key: "email_id" },
-    { label: "Role", key: "role_name" },
+    { label: "Role", key: "role_id" },
+    { label: "Name", key: "admin_name" },
+    { label: "Email Address", key: "admin_email" },
+
     { label: "Actions", key: "actions" },
   ];
 
-  const handleUpdateUserStatus = (userId: number, status: UserStatus) => {
-    setUsers((prevUsers) => {
-      if (status === UserStatus.DELETED) {
-        return prevUsers.filter((user) => user.user_id !== userId);
-      } else {
-        return prevUsers.map((user) =>
-          user.user_id === userId ? { ...user, status } : user
-        );
-      }
-    });
+  const handleListUsers = async (defaultPage?: number) => {
+    try {
+      const response = await usersListService.listUsers(
+        defaultPage || currentPage,
+        pageSize,
+        searchQuery
+      );
+      console.log("Fetched Users:", response?.data?.data?.adminsList);
+
+      log(LogLevel.INFO, "UsersList :: handleListUsers cc", response.data);
+
+      setUsers(response.data.data.adminsList); // Update this line
+      setUsersCount(response.data.data.adminsCount); // And this line
+    } catch (error) {
+      log(LogLevel.ERROR, "UsersList :: handleListUsers", error);
+    }
   };
+
+  const handleUpdateUserStatus = async (
+    admin_id: string,
+    status: UserStatus
+  ) => {
+    try {
+      const response = await usersListService.updateUserStatus(
+        admin_id,
+        status
+      );
+      log(LogLevel.INFO, "UsersList :: handleUpdateUserStatus", response.data);
+
+      setUsers((prevUsers) => {
+        if (status === UserStatus.DELETED) {
+          return prevUsers.filter(
+            (user) => user.admin_id.toString() !== admin_id
+          );
+        } else {
+          return prevUsers.map((user) =>
+            user.admin_id.toString() === admin_id ? { ...user, status } : user
+          );
+        }
+      });
+    } catch (error) {
+      log(LogLevel.ERROR, "UsersList :: handleUpdateUserStatus", error);
+    }
+  };
+
+  useEffect(() => {
+    handleListUsers();
+  }, [currentPage, searchQuery]);
 
   const handleSearch = (value: string) => {
-    // In static version, we won't implement full search functionality
-    setSearchQuery(value);
+    if (value.length > 3) {
+      setSearchQuery(value);
+    } else if (value.length === 0) {
+      setSearchQuery("");
+    }
   };
 
-  const debouncedHandleSearch = (value: string) => {
-    // Simple implementation without debounce for static version
-    handleSearch(value);
-  };
+  const debouncedHandleSearch = debounce(handleSearch, 300);
 
   return (
     <div className="">
-     <CommonDrawer
+      <CommonDrawer
         opened={opened}
         onClose={() => closeSlider()}
         closeButtonProps={{
@@ -146,9 +130,9 @@ const UserList = forwardRef<
         title={userId ? "Update User" : "Add User"}
       >
         <AddOrUpdateUser
-          user_id={userId}
+          admin_id={userId}
           close={closeDrawer}
-       //   handleListUsers={handleListUsers}
+          handleListUsers={handleListUsers}
         />
       </CommonDrawer>
       <h5 className="font-[500] text-2xl">User Management</h5>
@@ -158,12 +142,12 @@ const UserList = forwardRef<
             type="search"
             className="w-full outline-none"
             placeholder="Search for Users"
-            onChange={(e) => debouncedHandleSearch(e.target.value)}
+            onChange={(e: any) => debouncedHandleSearch(e.target.value)}
           />
           <img src={searchIcon} alt="search-icon" />
         </div>
         <div className="flex justify-end">
-        <Button style={{ background: "#5752de" }} onClick={openDrawer}>
+          <Button style={{ background: "#5752de" }} onClick={openDrawer}>
             Add User
           </Button>
         </div>
@@ -174,12 +158,12 @@ const UserList = forwardRef<
         totalCount={usersCount}
         renderActions={(user: any) => (
           <div className="flex space-x-2">
-            {/* <Switch
+            <Switch
               color="#14B584"
               size="sm"
               onChange={() =>
                 handleUpdateUserStatus(
-                  user.user_id,
+                  user.admin_id,
                   [
                     UserStatus.ACTIVE,
                     UserStatus.LOGGED_IN,
@@ -194,32 +178,35 @@ const UserList = forwardRef<
                 UserStatus.LOGGED_IN,
                 UserStatus.LOGGED_OUT,
               ].includes(user.status)}
-            />{" "} */}
+            />{" "}
             <Tooltip
               label="Edit"
               withArrow
               arrowPosition="center"
-              color="#990007"
+              color="#5752de"
             >
               <img
                 src={editIcon}
                 alt="Edit"
                 className="cursor-pointer"
-                onClick={() => handleEdit(user.user_id)}
+                onClick={() => handleEdit(user.admin_id)}
               />
             </Tooltip>
             <Tooltip
               label="Delete"
               withArrow
               arrowPosition="center"
-              color="#990007"
+              color="#5752de"
+              onClick={() =>
+                handleUpdateUserStatus(user.admin_id, UserStatus.DELETED)
+              }
             >
               <img
                 src={deleteIcon}
                 alt="Delete"
                 className="cursor-pointer"
                 onClick={() =>
-                  handleUpdateUserStatus(user.user_id, UserStatus.DELETED)
+                  handleUpdateUserStatus(user.admin_id, UserStatus.DELETED)
                 }
               />
             </Tooltip>
@@ -233,5 +220,4 @@ const UserList = forwardRef<
     </div>
   );
 });
-
 export default UserList;

@@ -29,7 +29,6 @@ const rolesService = {
                 isActive: isActive.toString(),
                 pageSize: pageSize.toString(),
                 currentPage: currentPage.toString(),
-                roleId: roleId.toString(),
                 searchFilter: searchFilter || ""
             });
 
@@ -39,11 +38,11 @@ const rolesService = {
                 return JSON.parse(cachedResult);
             }
 
-            let whereClause = `WHERE role_id NOT IN (1, ${roleId})`;
+            let whereClause = 'WHERE status';
             if (isActive) {
-                whereClause += ` AND status = ${RoleStatus.ACTIVE}`;
+                whereClause += ` = ${RoleStatus.ACTIVE}`;
             } else {
-                whereClause += ` AND status IN (${RoleStatus.ACTIVE}, ${RoleStatus.INACTIVE})`;
+                whereClause += ` IN (${RoleStatus.ACTIVE}, ${RoleStatus.INACTIVE})`;
             }
 
             if (searchFilter) {
@@ -80,7 +79,6 @@ const rolesService = {
 
             let key = redisKeysFormatter.getFormattedRedisKey(RedisKeys.ROLES_COUNT, {
                 isActive: isActive.toString(),
-                roleId: roleId.toString(),
                 searchFilter: searchFilter || ""
             });
 
@@ -90,11 +88,11 @@ const rolesService = {
                 return parseInt(cachedResult);
             }
 
-            let whereClause = `WHERE role_id NOT IN (1, ${roleId})`;
+            let whereClause = 'WHERE status';
             if (isActive) {
-                whereClause += ` AND status = ${RoleStatus.ACTIVE}`;
+                whereClause += ` = ${RoleStatus.ACTIVE}`;
             } else {
-                whereClause += ` AND status IN (${RoleStatus.ACTIVE}, ${RoleStatus.INACTIVE})`;
+                whereClause += ` IN (${RoleStatus.ACTIVE}, ${RoleStatus.INACTIVE})`;
             }
 
             if (searchFilter) {

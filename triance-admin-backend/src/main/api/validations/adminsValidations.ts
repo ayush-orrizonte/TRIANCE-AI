@@ -8,13 +8,12 @@ const adminValidations = {
             admin_id: Joi.number().optional(),
             admin_name: Joi.string().min(3).max(50).required(),
             admin_email: Joi.string().email().required(),
-            password: Joi.string().min(8).max(30).required(),
             profile_picture: Joi.string().uri().allow("", null).optional(),
             lastLogin_time: Joi.string().isoDate().allow("", null).optional(),
             invalidlogin_attempts: Joi.number().min(0).default(0).optional(),
             status: Joi.number().valid(...Object.values(AdminStatus).filter(value => typeof value === 'number')).default(AdminStatus.ACTIVE),
-            role_id: Joi.string().required(),
-            level: Joi.string().valid('super', 'admin', 'support').required(),
+            role_id: Joi.number().required(),
+            level: Joi.string().valid('super', 'admin', 'support').optional(),
         });
         return adminSchema.validate(admin);
     },
@@ -22,11 +21,11 @@ const adminValidations = {
     validateUpdateAdmin: (admin: Partial<IAdmin>): Joi.ValidationResult => {
         const adminSchema = Joi.object({
             admin_id: Joi.number().required(),
-            admin_name: Joi.string().min(3).max(50).required(),
-            admin_email: Joi.string().email().required(),
+            admin_name: Joi.string().min(3).max(50).optional(),
+            admin_email: Joi.string().email().optional(),
             profile_picture: Joi.string().uri().allow("", null).optional(),
-            role_id: Joi.string().required(),
-            level: Joi.string().valid('super', 'admin', 'support').required(),
+            role_id: Joi.number().optional(),
+            level: Joi.string().optional(),
         });
         return adminSchema.validate(admin);
     },

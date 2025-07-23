@@ -3,38 +3,40 @@ import * as Yup from "yup";
 const addOrUpdateUserValidation = {
   validateAddOrUpdateUser: () => {
     return Yup.object().shape({
-      first_name: Yup.string()
-        .min(3, "First Name must be at least 3 characters")
-        .max(30, "First Name must not exceed 30 characters")
+      admin_name: Yup.string()
+        .min(3, "Name must be at least 3 characters")
+        .max(50, "Name must not exceed 50 characters")
         .matches(
           /^[a-zA-Z\s]*$/,
-          "First Name can only contain letters and spaces"
+          "Name can only contain letters and spaces"
         )
-        .required("First Name is required"),
+        .required("Name is required"),
 
-      last_name: Yup.string()
-        .min(2, "Last Name must be at least 2 characters")
-        .max(30, "Last Name must not exceed 50 characters")
-        .matches(
-          /^[a-zA-Z\s]*$/,
-          "Last Name can only contain letters and spaces"
-        )
-        .required("Last Name is required"),
-
-      email_id: Yup.string()
+      admin_email: Yup.string()
         .required("Email is required")
-        .matches(/\S+@\S+\.\S+/, "Enter valid email"),
+        .matches(/\S+@\S+\.\S+/, "Enter valid email")
+        .max(100, "Email must not exceed 100 characters"),
 
-      mobile_number: Yup.string()
-        .matches(/^[6-9]\d{9}$/, "Invalid mobile number")
-        .required("Mobile Number is required"),
+      admin_id: Yup.number()
+        .typeError("Admin ID must be a number")
+        .positive("Admin ID must be positive")
+        .integer("Admin ID must be an integer"),
 
       role_id: Yup.number()
-        .transform((value, originalValue) =>
+        .transform((value, originalValue) => 
           String(originalValue).trim() === "" ? NaN : value
         )
         .typeError("Role is required")
-        .required("Role is required"),
+        .required("Role is required")
+        .positive("Role ID must be positive")
+        .integer("Role ID must be an integer"),
+
+      level: Yup.string()
+        .required("Level is required")
+        .oneOf(
+          ['super', 'admin', 'user'], 
+          "Level must be either 'super', 'admin', or 'user'"
+        )
     });
   },
 };
