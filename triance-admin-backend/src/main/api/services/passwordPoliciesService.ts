@@ -73,7 +73,7 @@ const passwordPoliciesService = {
         `${logPrefix} :: returned from DB :: ${passwordPolicies}`
       );
       if (passwordPolicies && passwordPolicies.length > 0)
-        redisUtils.set(key, JSON.stringify(passwordPolicies), CacheTTL.LONG);
+        // redisUtils.set(key, JSON.stringify(passwordPolicies), CacheTTL.LONG);
       return passwordPolicies;
     } catch (error: unknown) {
     if (isError(error)) {
@@ -103,7 +103,7 @@ const passwordPoliciesService = {
       logger.debug(
         `${logPrefix} :: returned from DB :: ${passwordPolicy}`
       );
-      if (passwordPolicy) redisUtils.set(key, JSON.stringify(passwordPolicy), CacheTTL.LONG);
+      // if (passwordPolicy) redisUtils.set(key, JSON.stringify(passwordPolicy), CacheTTL.LONG);
       return passwordPolicy;
     } catch (error: unknown) {
     if (isError(error)) {

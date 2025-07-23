@@ -155,7 +155,7 @@ const adminService = {
             const admin = await adminRepository.getAdminById(admin_id);
             logger.debug(`${logPrefix} :: returned from DB :: ${admin}`);
             if (admin) {
-                redisUtils.set(key, JSON.stringify(admin), CacheTTL.LONG);
+                // redisUtils.set(key, JSON.stringify(admin), CacheTTL.LONG);
                 return admin;
             }
         } catch (error: unknown) {
@@ -184,7 +184,7 @@ const adminService = {
             const admins = await adminRepository.listAdmins(pageSize, currentPage, searchQuery);
             logger.debug(`${logPrefix} :: returned from DB :: ${admins}`);
             if (admins && admins.length > 0) {
-                redisUtils.set(key, JSON.stringify(admins), CacheTTL.MID);
+                // redisUtils.set(key, JSON.stringify(admins), CacheTTL.MID);
                 return admins;
             }
         } catch (error: unknown) {
@@ -208,7 +208,7 @@ const adminService = {
             const admins = await adminRepository.getAdminsByRoleId(role_id);
             logger.debug(`${logPrefix} :: returned from DB :: ${admins}`);
             if (admins && admins.length > 0) {
-                redisUtils.set(key, JSON.stringify(admins), CacheTTL.MID);
+                // redisUtils.set(key, JSON.stringify(admins), CacheTTL.MID);
                 return admins;
             }
         } catch (error: unknown) {

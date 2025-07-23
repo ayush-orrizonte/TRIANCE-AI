@@ -55,7 +55,7 @@ const rolesService = {
             logger.debug(`${logPrefix} :: DB result count: ${result.length}`);
 
             if (result.length > 0) {
-                redisUtils.set(key, JSON.stringify(result), CacheTTL.MID);
+                // redisUtils.set(key, JSON.stringify(result), CacheTTL.MID);
             }
 
             return result;
@@ -102,7 +102,7 @@ const rolesService = {
             const count = await rolesRepository.listRolesCount(whereClause);
             logger.debug(`${logPrefix} :: DB result count: ${count}`);
 
-            redisUtils.set(key, count.toString(), CacheTTL.MID);
+            // redisUtils.set(key, count.toString(), CacheTTL.MID);
 
             return count;
         } catch (error: unknown) {
@@ -215,7 +215,7 @@ const rolesService = {
             logger.debug(`${logPrefix} :: DB result count: ${result.length}`);
 
             if (result.length > 0) {
-                redisUtils.set(key, JSON.stringify(result), CacheTTL.LONG);
+                // redisUtils.set(key, JSON.stringify(result), CacheTTL.LONG);
             }
 
             return result;
@@ -246,7 +246,7 @@ const rolesService = {
             logger.debug(`${logPrefix} :: DB result count: ${result.length}`);
 
             if (result.length > 0) {
-                redisUtils.set(key, JSON.stringify(result), CacheTTL.MID);
+                // redisUtils.set(key, JSON.stringify(result), CacheTTL.MID);
             }
 
             return result;
@@ -277,7 +277,7 @@ const rolesService = {
             logger.debug(`${logPrefix} :: DB result count: ${result.length}`);
 
             if (result.length > 0) {
-                redisUtils.set(key, JSON.stringify(result), CacheTTL.MID);
+                // redisUtils.set(key, JSON.stringify(result), CacheTTL.MID);
             }
 
             return result;
