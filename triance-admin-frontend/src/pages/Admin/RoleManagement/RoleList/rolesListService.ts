@@ -3,13 +3,13 @@ import { ApiResponse, post } from "../../../../api";
 
 const rolesListService = {
   listRoles: async (payload: any): Promise<ApiResponse<any>> => {
-    return await post("/api/v1/users/list", payload);
+    return await post("/api/v1/admin/roles/list", payload);
   },
   updateRoleStatus: async (
     role_id: number,
     status: string
   ): Promise<ApiResponse<any>> => {
-    return await post(`/api/v1/users/updateStatus`, {
+    return await post(`/api/v1/admin/roles/updateStatus`, {
       role_id: role_id,
       status,
     });

@@ -68,8 +68,6 @@ const setupInterceptors = (
         config.baseURL = environment.userApiBaseUrl;
       } else if (config.url?.startsWith("/api/v1/admin")) {
         config.baseURL = environment.adminApiBaseUrl;
-      } else if (config.url?.startsWith("/api/v1/devotee")) {
-        config.baseURL = environment.devoteeApiUrl;
       }
 
       if (userToken) {

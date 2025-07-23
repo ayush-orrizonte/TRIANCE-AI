@@ -88,8 +88,9 @@ const PasswordPolicy: React.FC = () => {
   };
 
   const handleSaveChanges = async () => {
-    const isValid = await validateForm();
-    if (!isValid) return;
+    alert("Saving changes...");
+    // const isValid = await validateForm();
+    // if (!isValid) return;
 
     try {
       const payload = {
@@ -97,12 +98,12 @@ const PasswordPolicy: React.FC = () => {
         password_expiry: formValues.passwordExpiry,
         password_history: formValues.passwordHistory,
         complexity: formValues.complexity,
-        minimum_password_length: formValues.passwordLength,
-        allowed_special_characters: formValues.allowedSpecialCharacters,
-        maximum_invalid_attempts: formValues.invalidAttempts,
-        alphabetical: formValues.alphabetical ? 1 : 0,
-        numeric: formValues.numeric ? 1 : 0,
-        special_characters: formValues.specialCharacters ? 1 : 0,
+        minimumPasswordLength: Number(formValues.passwordLength),
+        allowedSpecialCharacters: formValues.allowedSpecialCharacters,
+        maximumInvalidAttempts: Number(formValues.invalidAttempts)  ,
+        alphabetical: formValues.alphabetical ? true : false,
+        numeric: formValues.numeric ?  true : false,
+        specialCharacters: formValues.specialCharacters ? true : false,
       };
 
       if (isUpdating) {
