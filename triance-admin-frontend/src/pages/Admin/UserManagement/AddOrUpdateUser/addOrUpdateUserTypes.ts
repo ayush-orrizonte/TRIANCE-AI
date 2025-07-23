@@ -1,4 +1,5 @@
 export interface AddOrUpdateUserProps {
-    close: () => void;
-    user_id: number | null;
+  close: () => void;
+  admin_id: number | null;
+  handleListUsers: () => void;
 }

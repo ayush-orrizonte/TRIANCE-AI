@@ -2,13 +2,13 @@ import { ApiResponse, get, post } from "../../../../api";
 
 export const addOrUpdateRoleService = {
   getDefaultAccessList: async (): Promise<ApiResponse<any>> => {
-    return await get("/api/v1/admin/roles/defaultAccessList");
+    return await get("/api/v1/users/defaultAccessList");
   },
   getAccessList: async (roleId: number): Promise<ApiResponse<any>> => {
-    return await get(`/api/v1/admin/roles/accessList/${roleId}`);
+    return await get(`/api/v1/users/defaultAccessList/${roleId}`);
   },
   getRole: async (roleId: number): Promise<ApiResponse<any>> => {
-    return await get(`/api/v1/admin/roles/${roleId}`);
+    return await get(`/api/v1/users/defaultAccessList/${roleId}`);
   },
   addRole: async (
     roleName: string,
@@ -16,7 +16,7 @@ export const addOrUpdateRoleService = {
     // level: string,
     permissions: { menuId: string; permissionId: string }[]
   ): Promise<ApiResponse<any>> => {
-    return await post("/api/v1/admin/roles/add", {
+    return await post("/api/v1/users/add", {
       roleName: roleName,
       roleDescription: roleDescription,
       // level,
@@ -30,7 +30,7 @@ export const addOrUpdateRoleService = {
     // level: string,
     permissions: { menuId: string; permissionId: string }[]
   ): Promise<ApiResponse<any>> => {
-    return await post(`/api/v1/admin/roles/update`, {
+    return await post(`/api/v1/users/update`, {
       roleId: roleId,
       roleName: roleName,
       roleDescription: roleDescription,
@@ -39,6 +39,6 @@ export const addOrUpdateRoleService = {
     });
   },
   listLevels: async (): Promise<ApiResponse<any>> => {
-    return await get("/api/v1/admin/roles/listLevels");
+    return await get("/api/v1/users/list");
   },
 };

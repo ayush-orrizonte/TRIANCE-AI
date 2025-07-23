@@ -27,6 +27,8 @@ import LoadingFallback from "./components/common/LoadingFallback/LoadingFallback
 import { useAuth, useLoader, useLogger, useToast } from "./hooks";
 import { setupInterceptors } from "./api/axiosConfig";
 import { LogLevel } from "./enums";
+import Header from "./components/common/Header/Header";
+import PrivateRoutes from "./components/common/PrivateRoutes/PrivateRoutes";
 
 function App() {
   const { userToken, isAuthenticated, logout } = useAuth();
@@ -44,14 +46,15 @@ function App() {
 
   return (
     <Suspense fallback={<LoadingFallback />}>
-      {/* Header */}
+  
       <div className="flex flex-col md:flex-row w-full">
-        <aside className="w-full md:w-[20%] hidden md:block ">
-          <SideBarMenu />
-        </aside>
-
+         {isAuthenticated && (
+          <aside className="w-full md:w-[20%] hidden md:block ">
+            <SideBarMenu />
+          </aside>
+        )}
         <main
-          className={`w-full md:w-[80%] p-4 ${
+          className={`w-full md:w-[80%] ap-4 ${
             isAuthenticated
               ? "md:w-[80%] sm:w-[100%] xs:w-[100%] pt-20 sm:pt-16 md:pt-20"
               : ""
@@ -85,15 +88,15 @@ function App() {
             />
             <Route
               path="/role-management"
-              element={<PublicRoutes element={<RoleManagement />} />}
+              element={<PrivateRoutes element={<RoleManagement />} />}
             />
             <Route
               path="/user-management"
-              element={<PublicRoutes element={<UserManagement />} />}
+              element={<PrivateRoutes element={<UserManagement />} />}
             />
             <Route
               path="/password-policy"
-              element={<PublicRoutes element={<PasswordPolicy />} />}
+              element={<PrivateRoutes element={<PasswordPolicy />} />}
             />
           </Routes>
         </main>
