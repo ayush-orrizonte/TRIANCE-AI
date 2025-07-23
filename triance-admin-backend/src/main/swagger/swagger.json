@@ -587,7 +587,7 @@
         }
       }
     },
-    "/api/v1/passwordPolicies/list": {
+    "/api/v1/admin/passwordPolicies/list": {
       "get": {
         "tags": [
           "Password Policies"
@@ -610,7 +610,7 @@
         }
       }
     },
-    "/api/v1/passwordPolicies/add": {
+    "/api/v1/admin/passwordPolicies/add": {
       "post": {
         "tags": [
           "Password Policies"
@@ -679,7 +679,7 @@
         }
       }
     },
-    "/api/v1/passwordPolicies/update": {
+    "/api/v1/admin/passwordPolicies/update": {
       "post": {
         "tags": [
           "Password Policies"
@@ -701,11 +701,19 @@
             "schema": {
               "type": "object",
               "properties": {
-                "_id": {
+                "id": {
                   "type": "string",
-                  "example": "60fead1d5d3e2c001f8e4e72"
+                  "example": "1"
                 },
-                "minimumPasswordLength": {
+                "password_expiry": {
+                  "type": "number",
+                  "example": 10
+                },
+                "password_history": {
+                  "type": "number",
+                  "example": 10
+                },
+                "minimum_password_length": {
                   "type": "number",
                   "example": 8
                 },
@@ -721,15 +729,15 @@
                   "type": "boolean",
                   "example": true
                 },
-                "specialCharacters": {
+                "special_characters": {
                   "type": "boolean",
                   "example": true
                 },
-                "allowedSpecialCharacters": {
+                "allowed_special_characters": {
                   "type": "string",
                   "example": "!@#$%^&*()"
                 },
-                "maximumInvalidAttempts": {
+                "maximum_invalid_attempts": {
                   "type": "number",
                   "example": 5
                 }
@@ -744,7 +752,7 @@
         }
       }
     },
-    "/api/v1/passwordPolicies/{passwordPolicyId}": {
+    "/api/v1/admin/passwordPolicies/{passwordPolicyId}": {
       "get": {
         "tags": [
           "Password Policies"
@@ -774,49 +782,7 @@
         }
       }
     },
-    "/api/v1/users/create": {
-      "post": {
-        "tags": [
-          "Users"
-        ],
-        "summary": "Add User",
-        "description": "Endpoint to Add User",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "admin_name": {
-                  "type": "string",
-                  "example": "Rajesh"
-                },
-                "admin_email": {
-                  "type": "string",
-                  "example": "rajeshnayak899@gmail.com"
-                },
-                "role_id": {
-                  "type": "number",
-                  "example": 2
-                },
-                "level": {
-                  "type": "string",
-                  "example": "admin"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/v1/users/list": {
+    "/api/v1/admin/roles/list": {
       "post": {
         "tags": [
           "Roles"
@@ -870,7 +836,7 @@
         }
       }
     },
-    "/api/v1/users/updateStatus": {
+    "/api/v1/admin/roles/updateStatus": {
       "post": {
         "tags": [
           "Roles"
@@ -916,7 +882,7 @@
         }
       }
     },
-    "/api/v1/users/add": {
+    "/api/v1/admin/roles/add": {
       "post": {
         "tags": [
           "Roles"
@@ -977,7 +943,7 @@
         }
       }
     },
-    "/api/v1/users/update": {
+    "/api/v1/admin/roles/update": {
       "post": {
         "tags": [
           "Roles"
@@ -1046,7 +1012,7 @@
         }
       }
     },
-    "/api/v1/users/menusList": {
+    "/api/v1/admin/roles/menusList": {
       "get": {
         "tags": [
           "Roles"
@@ -1076,7 +1042,7 @@
         }
       }
     },
-    "/api/v1/users/defaultAccessList": {
+    "/api/v1/admin/roles/defaultAccessList": {
       "get": {
         "tags": [
           "Roles"
@@ -1099,7 +1065,7 @@
         }
       }
     },
-    "/api/v1/users/combinedAccess": {
+    "/api/v1/admin/roles/combinedAccess": {
       "get": {
         "tags": [
           "Roles"
@@ -1127,7 +1093,7 @@
         }
       }
     },
-    "/api/v1/users/listLevels": {
+    "/api/v1/admin/roles/listLevels": {
       "get": {
         "tags": [
           "Roles"
@@ -1150,7 +1116,7 @@
         }
       }
     },
-    "/api/v1/users/accessList/{roleId}": {
+    "/api/v1/admin/roles/accessList/{roleId}": {
       "get": {
         "tags": [
           "Roles"
@@ -1180,7 +1146,7 @@
         }
       }
     },
-    "/api/v1/users/{roleId}": {
+    "/api/v1/admin/roles/{roleId}": {
       "get": {
         "tags": [
           "Roles"

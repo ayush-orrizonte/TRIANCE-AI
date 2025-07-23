@@ -121,14 +121,16 @@ const passwordPoliciesController = {
           in: 'body',
           required: true,
           schema: {
-            _id: "60fead1d5d3e2c001f8e4e72",
-            minimumPasswordLength: 8,
-            complexity: 3,
-            alphabetical: true,
-            numeric: true,
-            specialCharacters: true,
-            allowedSpecialCharacters: '!@#$%^&*()',
-            maximumInvalidAttempts: 5
+           "id": "1",
+            "password_expiry": 10,
+            "password_history": 10,
+            "minimum_password_length": 8,
+            "complexity": 3,
+            "alphabetical": true,
+            "numeric": true,
+            "special_characters": true,
+            "allowed_special_characters": "!@#$%^&*()",
+            "maximum_invalid_attempts": 5
           }
         }
       */

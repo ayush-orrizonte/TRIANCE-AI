@@ -69,16 +69,16 @@ const PasswordPolicy: React.FC = () => {
       ) {
         const policy = response.data.data[0];
         setFormValues({
-          id: policy.id || "",
-          passwordExpiry: policy.password_expiry || "",
-          passwordHistory: policy.password_history || "",
-          complexity: policy.complexity || "",
-          passwordLength: policy.minimum_password_length || "",
+          id: policy.id || 1,
+          passwordExpiry:(policy.password_expiry) || 0,
+          passwordHistory:(policy.password_history) || 0,
+          complexity:(policy.complexity) || 0,
+          passwordLength:(policy.minimum_password_length) || 0,
           allowedSpecialCharacters: policy.allowed_special_characters || "",
-          invalidAttempts: policy.maximum_invalid_attempts || "",
-          alphabetical: policy.alphabetical === 1,
-          numeric: policy.numeric === 1,
-          specialCharacters: policy.special_characters === 1,
+          invalidAttempts: (policy.maximum_invalid_attempts) || 0,
+          alphabetical: !!policy.alphabetical,
+          numeric: !!policy.numeric,
+          specialCharacters: !!policy.special_characters,
         });
         setIsUpdating(true);
       }
@@ -88,24 +88,26 @@ const PasswordPolicy: React.FC = () => {
   };
 
   const handleSaveChanges = async () => {
-    alert("Saving changes...");
+    // Optional: uncomment to validate before save
     // const isValid = await validateForm();
     // if (!isValid) return;
 
-    try {
-      const payload = {
-        id: formValues.id,
-        password_expiry: formValues.passwordExpiry,
-        password_history: formValues.passwordHistory,
-        complexity: formValues.complexity,
-        minimumPasswordLength: Number(formValues.passwordLength),
-        allowedSpecialCharacters: formValues.allowedSpecialCharacters,
-        maximumInvalidAttempts: Number(formValues.invalidAttempts)  ,
-        alphabetical: formValues.alphabetical ? true : false,
-        numeric: formValues.numeric ?  true : false,
-        specialCharacters: formValues.specialCharacters ? true : false,
-      };
+    const payload = {
+      id: formValues.id,
+      password_expiry: Number(formValues.passwordExpiry),
+      password_history: Number(formValues.passwordHistory),
+      complexity: Number(formValues.complexity),
+      minimum_password_length: Number(formValues.passwordLength),
+      allowed_special_characters: formValues.allowedSpecialCharacters,
+      maximum_invalid_attempts: Number(formValues.invalidAttempts),
+      alphabetical: !!formValues.alphabetical,
+      numeric: !!formValues.numeric,
+      special_characters: !!formValues.specialCharacters,
+    };
 
+    console.log("Submitting password policy payload:", payload); // ✅ debug log
+
+    try {
       if (isUpdating) {
         await passwordPolicyService.updatePasswordPolicy(payload);
         showToast("Password Policy Updated", "Success", ToastType.SUCCESS);
@@ -113,7 +115,6 @@ const PasswordPolicy: React.FC = () => {
         await passwordPolicyService.addPasswordPolicy(payload);
         showToast("Password Policy Added", "Success", ToastType.SUCCESS);
       }
-
       await getPasswordPolicyList();
     } catch (error) {
       log(LogLevel.ERROR, "Error saving Password Policy", error);
@@ -190,6 +191,7 @@ const PasswordPolicy: React.FC = () => {
             error={errors.invalidAttempts}
           />
         </div>
+
         <div className="mb-6 flex justify-between items-center space-x-2">
           <span className="text-sm font-medium">
             Require Alphabetical Characters
@@ -203,6 +205,7 @@ const PasswordPolicy: React.FC = () => {
             color="#11B685"
           />
         </div>
+
         <div className="mb-6 flex justify-between items-center space-x-2">
           <span className="text-sm font-medium">
             Require Numerical Characters
@@ -216,6 +219,7 @@ const PasswordPolicy: React.FC = () => {
             color="#11B685"
           />
         </div>
+
         <div className="mb-4 flex justify-between items-center space-x-2">
           <span className="text-sm font-medium">
             Require Special Characters
@@ -229,6 +233,7 @@ const PasswordPolicy: React.FC = () => {
             color="#11B685"
           />
         </div>
+
         <Button
           variant="filled"
           color="#5752de"

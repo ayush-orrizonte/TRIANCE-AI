@@ -16,7 +16,7 @@ const usersListService = {
     return await post("/api/v1/admin/list", payload);
   },
   updateUserStatus: async (
-    admin_id: string,
+    admin_id: number,
     status: UserStatus
   ): Promise<ApiResponse<any>> => {
     return await post(`/api/v1/admin/updateStatus`, {

@@ -4,7 +4,7 @@ import { usersController } from "../controllers";
 const usersRouter = express.Router();
 
 
-usersRouter.post("/create", usersController.createUser);
+// usersRouter.post("/create", usersController.createUser);
 // usersRouter.post("/update", usersController.updateUser);
 // usersRouter.get("/list/:roleId", usersController.listUsersByRoleId);
 // usersRouter.post("/list", usersController.listUsers);

@@ -79,7 +79,7 @@ const UserList = forwardRef<
   };
 
   const handleUpdateUserStatus = async (
-    admin_id: string,
+    admin_id: number,
     status: UserStatus
   ) => {
     try {
@@ -92,11 +92,11 @@ const UserList = forwardRef<
       setUsers((prevUsers) => {
         if (status === UserStatus.DELETED) {
           return prevUsers.filter(
-            (user) => user.admin_id.toString() !== admin_id
+            (user) => user.admin_id !== admin_id
           );
         } else {
           return prevUsers.map((user) =>
-            user.admin_id.toString() === admin_id ? { ...user, status } : user
+            user.admin_id === admin_id ? { ...user, status } : user
           );
         }
       });
