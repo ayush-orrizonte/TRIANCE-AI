@@ -71,7 +71,7 @@ const adminController = {
 
       if (!isPasswordValid) {
         if (admin.invalidlogin_attempts < passwordPolicy.maximumInvalidAttempts) {
-          await adminService.updateInvalidLoginAttempts(admin.admin_email, admin.admin_id);
+          // await adminService.updateInvalidLoginAttempts(admin.admin_email, admin.admin_id);
           res.status(HttpStatusCodes.BAD_REQUEST).json({
             code: ErrorCodes.Admin.ADMIN001,
             message: "Invalid Credentials",
