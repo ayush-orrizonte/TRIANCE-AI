@@ -28,7 +28,7 @@ const adminController = {
           schema: {
             admin_name: 'Admin User',
             admin_email: 'admin@example.com',
-            role_id: '1',
+            role_id: 1,
             level: 'super'
           }
         }
