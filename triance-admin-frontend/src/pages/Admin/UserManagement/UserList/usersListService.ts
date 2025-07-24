@@ -29,7 +29,7 @@ const usersListService = {
     currentPage: number,
     isActive: boolean
   ): Promise<ApiResponse<any>> => {
-    return await post("/api/v1/users/list", {
+    return await post("/api/v1/admin/roles/list", {
       page_size: pageSize,
       current_page: currentPage,
       is_active: isActive,

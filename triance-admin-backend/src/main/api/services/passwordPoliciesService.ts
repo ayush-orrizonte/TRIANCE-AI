@@ -36,13 +36,13 @@ const passwordPoliciesService = {
       await passwordPoliciesRepository.updatePasswordPolicy(passwordPolicy);
   
       const baseKey = redisKeysFormatter.getFormattedRedisKey(RedisKeys.PASSWORD_POLICIES, {});
-      const byIdKey = redisKeysFormatter.getFormattedRedisKey(
-        RedisKeys.PASSWORD_POLICY_BY_ID,
-        { passwordPolicyId: passwordPolicy._id.toString() }
-      );
+      // const byIdKey = redisKeysFormatter.getFormattedRedisKey(
+      //   RedisKeys.PASSWORD_POLICY_BY_ID,
+      //   { passwordPolicyId: passwordPolicy._id.toString() }
+      // );
   
       await redisUtils.delete(baseKey);
-      await redisUtils.delete(byIdKey);
+      // await redisUtils.delete(byIdKey);
   
       logger.info(`${logPrefix} :: Password policy updated and cache cleared`);
     } catch (error: unknown) {
