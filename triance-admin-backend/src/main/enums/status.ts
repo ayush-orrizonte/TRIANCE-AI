@@ -29,7 +29,9 @@ export enum Levels {
 }
 
 export enum RoleStatus {
-  INACTIVE = 0,
-  ACTIVE = 1,
-  ARCHIVED = 2,
+  INACTIVE = 1,
+  ACTIVE = 2,
+  LOGGED_IN = 3,
+  LOGGED_OUT = 4,
+  DELETED = 5
 }

@@ -5,7 +5,7 @@ export const addOrUpdateRoleService = {
     return await get("/api/v1/admin/roles/defaultAccessList");
   },
   getAccessList: async (roleId: number): Promise<ApiResponse<any>> => {
-    return await get(`/api/v1/adminroles/combinedAccess/${roleId}`);
+    return await get(`/api/v1/admin/roles/combinedAccess/${roleId}`);
   },
   getRole: async (): Promise<ApiResponse<any>> => {
     return await get(`/api/v1/admin/roles/list`);

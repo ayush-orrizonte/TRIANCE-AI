@@ -92,7 +92,7 @@ export enum RoleQueries {
   UPDATE_ROLE = "UPDATE m_roles SET role_name = $2, role_description = $3, level = $4, updated_by = $5, date_updated = NOW() WHERE role_id = $1",
   GET_ROLE = "SELECT role_name, role_description, level, status FROM m_roles WHERE role_id = $1 AND status IN (0, 1)",
   UPDATE_ROLE_STATUS = "UPDATE m_roles SET status = $2, updated_by = $1, date_updated = NOW() WHERE role_id = $3",
-  EXISTS_BY_ROLE_ID = `SELECT EXISTS (SELECT 1 FROM m_roles WHERE role_id = $1 AND status IN (0, 1))`,
+  EXISTS_BY_ROLE_ID = `SELECT EXISTS (SELECT 1 FROM m_roles WHERE role_id = $1 AND status IN (1,2,3,4,5))`,
   EXISTS_BY_ROLE_NAME = `SELECT EXISTS (SELECT 1 FROM m_roles WHERE role_name = $1 AND status = 1)`,
   ADD_ROLE = "INSERT INTO m_roles (role_name, role_description, level, status, created_by, updated_by, date_created, date_updated) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING role_id",
   ADD_PERMISSIONS = "INSERT INTO access_control (role_id, menu_id, permission_id, created_by, updated_by) values($1, $2, $3, $4, $4)",

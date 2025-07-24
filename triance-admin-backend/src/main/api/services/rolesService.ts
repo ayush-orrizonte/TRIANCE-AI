@@ -38,12 +38,14 @@ const rolesService = {
                 return JSON.parse(cachedResult);
             }
 
-            let whereClause = 'WHERE status';
+            let whereClause = 'WHERE ';
             if (isActive) {
-                whereClause += ` = ${RoleStatus.ACTIVE}`;
+                whereClause += `status = ${RoleStatus.ACTIVE}`;
             } else {
-                whereClause += ` IN (${RoleStatus.ACTIVE}, ${RoleStatus.INACTIVE})`;
+                whereClause += `status IN (${RoleStatus.ACTIVE}, ${RoleStatus.INACTIVE})`;
             }
+             whereClause += ` AND status NOT IN (${RoleStatus.DELETED}, ${RoleStatus.LOGGED_IN}, ${RoleStatus.LOGGED_OUT})`;
+
 
             if (searchFilter) {
                 whereClause += ` AND role_name ILIKE '%${searchFilter}%'`;

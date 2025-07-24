@@ -98,7 +98,7 @@ const rolesController = {
       await rolesService.updateRoleStatus(
         role_id,
         status,
-        req.query.id
+        Number(req.query.id)
       );
 
       logger.info(`${logPrefix} :: Role status updated successfully`);

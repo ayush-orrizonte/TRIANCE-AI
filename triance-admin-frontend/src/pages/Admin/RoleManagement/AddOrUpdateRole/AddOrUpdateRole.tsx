@@ -12,12 +12,9 @@ const AddOrUpdateRole: React.FC<AddOrUpdateRoleProps> = ({
   close,
   listRoles,
 }) => {
-  const [roleName, setRoleName] = useState("");
-  const [roleDescription, setRoleDescription] = useState("");
-  const [level, setLevel] = useState("");
   const { log } = useLogger();
   const { showToast } = useToast();
-  const [admin, setAdmin] = useState("");
+  const [isClicked, setIsClicked] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -28,144 +25,58 @@ const AddOrUpdateRole: React.FC<AddOrUpdateRoleProps> = ({
     validate: yupResolver(addOrUpdateRoleValidation.validateAddOrUpdateRole()),
   });
 
-  const [defaultAccessList, setDefaultAccessList] = useState<IDefaultAccess[]>(
-    []
-  );
-  const [levels, setLevels] = useState<{ value: string; label: string }[]>([]);
-
-  const [isClicked, setIsClicked] = useState(false);
-
-  const handleChange = (name: string, value: string | number | boolean) => {
-    form.setValues({
-      ...form.values,
-      [name]: value,
-    });
-  };
+  const [defaultAccessList, setDefaultAccessList] = useState<IDefaultAccess[]>([]);
 
   const getDefaultAccessList = async () => {
     try {
-      const response = await addOrUpdateRoleService.getDefaultAccessList();
-      log(LogLevel.INFO, "RoleList :: getDefaultAccessList", response.data);
-      if (response.data && response.data.data) {
-        setDefaultAccessList(response.data.data.data);
-      }
+      const res = await addOrUpdateRoleService.getDefaultAccessList();
+      const accessList = res?.data?.data?.data || [];
+      setDefaultAccessList(accessList);
+      log(LogLevel.INFO, "getDefaultAccessList", accessList);
     } catch (error) {
-      log(LogLevel.ERROR, "RoleList :: getDefaultAccessList", error);
+      log(LogLevel.ERROR, "getDefaultAccessList", error);
     }
   };
 
   const getAccessList = async (roleId: number) => {
     try {
-      const response = await addOrUpdateRoleService.getAccessList(roleId);
-      log(LogLevel.INFO, "RoleList :: getAccessList", response.data);
-      if (response.data && response.data.data) {
-        const permissions: { menu_id: number; permission_id: number }[] = [];
-        for (const access of response.data.data) {
-          if (
-            access.display_permission === 1 &&
-            access.read_permission === "1"
-          ) {
-            permissions.push({ menu_id: access.menu_id, permission_id: 2 });
-          } else if (
-            access.display_permission === 1 &&
-            access.write_permission === "1"
-          ) {
-            permissions.push({ menu_id: access.menu_id, permission_id: 1 });
-          }
-        }
-        form.setValues((prevValues: any) => ({
-          ...prevValues,
-          permissions,
-        }));
-      }
-    } catch (error) {
-      log(LogLevel.ERROR, "RoleList :: getAccessList", error);
-    }
-  };
+      const res = await addOrUpdateRoleService.getAccessList(roleId);
+      const role = res?.data?.data;
 
-  const getRole = async () => {
-    try {
-      const response = await addOrUpdateRoleService.getRole();
-      log(LogLevel.INFO, "RoleList :: getRole", response.data);
-      if (response.data && response.data.data) {
+      if (role) {
+        const permissions =
+          role.permissions?.[0]?.permissions?.map((p: any) => ({
+            menu_id: p.menuId,
+            permission_id: p.permissionId,
+          })) || [];
+
         form.setValues({
-          role_name: response.data.data.role_name,
-          role_description: response.data.data.role_description,
-
-          permissions: response.data.data.permissions || [],
+          role_name: role.role_name || role.roleName,
+          role_description: role.role_description || role.roleDescription,
+          permissions,
         });
-      }
-    } catch (error) {
-      log(LogLevel.ERROR, "RoleList :: getRole", error);
-    }
-  };
 
-  const listLevels = async () => {
-    try {
-      const response = await addOrUpdateRoleService.listLevels();
-      log(LogLevel.INFO, "RoleList :: listLevels", response.data);
-      if (response.data && response.data.data) {
-        const transformedLevels = response.data.data.map((level: string) => ({
-          label: level,
-          value: level,
-        }));
-        setLevels(transformedLevels);
+        log(LogLevel.INFO, "getAccessList", permissions);
       }
     } catch (error) {
-      log(LogLevel.ERROR, "RoleList :: listLevels", error);
+      log(LogLevel.ERROR, "getAccessList", error);
     }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await getDefaultAccessList();
-        await listLevels();
+    const fetchAll = async () => {
+      await getDefaultAccessList();
 
-        if (roleId) {
-          const [roleResponse] = await Promise.all([
-          
-
-            addOrUpdateRoleService.getAccessList(roleId),
-          ]);
-
-          log(LogLevel.INFO, "RoleList :: getRole", roleResponse.data);
-        //  log(LogLevel.INFO, "RoleList :: getAccessList", accessResponse.data);
-
-          if (roleResponse.data && roleResponse.data.data) {
-            const role = roleResponse.data.data;
-
-            const extractedPermissions =
-              role.permissions?.[0]?.permissions?.map((item: any) => ({
-                menu_id: item.menuId,
-                permission_id: item.permissionId,
-              })) || [];
-
-            form.setValues({
-              role_name: role.role_name || role.roleName,
-              role_description: role.role_description || role.roleDescription,
-              permissions: extractedPermissions,
-            });
-          }
-
-        
-        }
-      } catch (error) {
-        log(LogLevel.ERROR, "AddOrUpdateRole :: fetchData", error);
+      if (roleId) {
+        await getAccessList(roleId);
       }
     };
 
-    fetchData();
+    fetchAll();
   }, [roleId]);
 
-
-
- 
-
   const getPermissions = (menuId: string) => {
-    const access = form.values.permissions.find(
-      (p) => p.menu_id.toString() === menuId
-    );
+    const access = form.values.permissions.find(p => p.menu_id.toString() === menuId);
     return {
       read: access?.permission_id === "2",
       write: access?.permission_id === "1",
@@ -177,115 +88,78 @@ const AddOrUpdateRole: React.FC<AddOrUpdateRoleProps> = ({
     permission: MenuAccess,
     checked: boolean
   ) => {
-    console.log("Permission Changed:", menuId, permission, checked);
     const permissionId = permission === MenuAccess.READ ? "2" : "1";
-    const updatedPermissions = checked
+
+    const updated = checked
       ? [
-          ...form.values.permissions.filter(
-            (p) => p.menu_id.toString() !== menuId
-          ),
+          ...form.values.permissions.filter(p => p.menu_id.toString() !== menuId),
           { menu_id: menuId, permission_id: permissionId },
         ]
       : form.values.permissions.filter(
-          (p) =>
-            !(
-              p.menu_id.toString() === menuId &&
-              p.permission_id === permissionId
-            )
+          p => !(p.menu_id.toString() === menuId && p.permission_id === permissionId)
         );
 
-    form.setValues((prevValues: any) => ({
-      ...prevValues,
-      permissions: updatedPermissions,
+    form.setValues(prev => ({
+      ...prev,
+      permissions: updated,
     }));
   };
 
-  console.log(defaultAccessList, "defaultAccessList");
+  const groupedAccessList = defaultAccessList.reduce(
+    (acc: Record<number, IDefaultAccess[]>, item: IDefaultAccess) => {
+      if (!acc[item.menu_id]) acc[item.menu_id] = [];
+      acc[item.menu_id].push(item);
+      return acc;
+    },
+    {}
+  );
 
-  const groupedAccessList =
-    defaultAccessList.length > 0 &&
-    defaultAccessList.reduce(
-      (acc: Record<number, IDefaultAccess[]>, item: IDefaultAccess) => {
-        if (!acc[item.menu_id]) {
-          acc[item.menu_id] = [];
-        }
-        acc[item.menu_id].push(item);
-        return acc;
-      },
-      {}
-    );
-
-  const handleSubmit = async (values: {
-    role_name: string;
-    role_description: string;
-    level: string;
-    permissions: { menu_id: string; permission_id: string }[];
-  }) => {
+  const handleSubmit = async (values: typeof form.values) => {
     const errors = form.validate();
     if (Object.keys(errors.errors).length > 0) {
-      showToast(
-        "Please fix the validation errors.",
-        "Validation Error",
-        ToastType.WARNING
-      );
+      showToast("Please fix the validation errors.", "Validation Error", ToastType.WARNING);
       return;
     }
+
     try {
-      console.log(values);
-      console.log("Final payload:", values.permissions);
+      const payload = values.permissions.map(p => ({
+        menuId: p.menu_id,
+        permissionId: p.permission_id,
+      }));
 
-      if (roleId) {
-        const response = await addOrUpdateRoleService.updateRole(
-          roleId,
-          values.role_name,
-          values.role_description,
-          // values.level,
-          values.permissions.map((p: any) => ({
-            menuId: p.menu_id,
-            permissionId: p.permission_id,
-          }))
-        );
+      const response = roleId
+        ? await addOrUpdateRoleService.updateRole(
+            roleId,
+            values.role_name,
+            values.role_description,
+            payload
+          )
+        : await addOrUpdateRoleService.addRole(
+            values.role_name,
+            values.role_description,
+            payload
+          );
 
-        if (response.status === 200)
-          showToast("Role Updated", "Success", ToastType.SUCCESS);
-      } else {
-        const response = await addOrUpdateRoleService.addRole(
-          values.role_name,
-          values.role_description,
-          // values.level,
-          values.permissions.map((p: any) => ({
-            menuId: p.menu_id,
-            permissionId: p.permission_id,
-          }))
+      if (response.status === 200) {
+        showToast(
+          roleId ? "Role Updated" : "Role Added",
+          "Success",
+          ToastType.SUCCESS
         );
-        if (response.status === 200)
-          showToast("Role Added", "Success", ToastType.SUCCESS);
         form.reset();
+        setTimeout(() => {
+          close();
+          listRoles();
+        }, 1000);
       }
-      setTimeout(async () => {
-        close();
-        listRoles();
-      }, 1000);
     } catch (error) {
-      log(LogLevel.ERROR, "AddOrUpdateRole :: handleSubmit", error);
+      log(LogLevel.ERROR, "handleSubmit", error);
     }
-  };
-  console.log(form.values, "form.values");
-
-  const handleButtonClick = () => {
-    setIsClicked(true);
-    handleSubmit(form.values as any); // Ensure the form submit handler is still called
   };
 
   return (
-    <div className="h-full s flex flex-col">
-      <div
-        className="overflow-y-auto h-[calc(100vh-4rem)] p-4"
-        style={{
-          scrollbarWidth: "thin",
-          scrollbarColor: "#ccc transparent",
-        }}
-      >
+    <div className="h-full flex flex-col">
+      <div className="overflow-y-auto h-[calc(100vh-4rem)] p-4">
         <div className="mb-6">
           <label className="text-base">Role Name</label>
           <TextInput
@@ -304,70 +178,54 @@ const AddOrUpdateRole: React.FC<AddOrUpdateRoleProps> = ({
             {...form.getInputProps("role_description")}
           />
         </div>
-        {/* <div className="mb-6">
-          <label className="text-base">Level</label>
-          <TextInput
-            radius="md"
-            placeholder="Enter Level"
-            className="mt-2"
-            {...form.getInputProps("level")}
-          />
-        </div> */}
+
         <div className="mt-14">
-          <div className="mb-6 relative border rounded-xl p-5 border-gray-300">
-            <div className="absolute -top-3.5 left-32 bg-white px-2 ">
+          <div className="mb-6 border rounded-xl p-5 border-gray-300 relative">
+            <div className="absolute -top-3.5 left-32 bg-white px-2">
               Role Permissions
             </div>
             <div className="mb-6">
-              {Object.entries(groupedAccessList).map(
-                ([menu_id, permissions]) => (
-                  <div key={menu_id} className="mb-4">
-                    <div className="mb-2">{permissions[0]?.menu_name}</div>
-                    <div key={menu_id}>
-                      <div className="flex justify-between mr-6">
-                        <Checkbox
-                          label={MenuAccess.READ}
-                          checked={getPermissions(menu_id).read}
-                          onChange={(e) =>
-                            handlePermissionChange(
-                              menu_id,
-                              MenuAccess.READ,
-                              e.currentTarget.checked
-                            )
-                          }
-                        />
-                        <Checkbox
-                          label={MenuAccess.WRITE}
-                          checked={getPermissions(menu_id).write}
-                          onChange={(e) =>
-                            handlePermissionChange(
-                              menu_id,
-                              MenuAccess.WRITE,
-                              e.currentTarget.checked
-                            )
-                          }
-                        />
-                      </div>
-                    </div>
+              {Object.entries(groupedAccessList).map(([menu_id, permissions]) => (
+                <div key={menu_id} className="mb-4">
+                  <div className="mb-2">{permissions[0]?.menu_name}</div>
+                  <div className="flex justify-between mr-6">
+                    <Checkbox
+                      label={MenuAccess.READ}
+                      checked={getPermissions(menu_id).read}
+                      onChange={(e) =>
+                        handlePermissionChange(menu_id, MenuAccess.READ, e.currentTarget.checked)
+                      }
+                    />
+                    <Checkbox
+                      label={MenuAccess.WRITE}
+                      checked={getPermissions(menu_id).write}
+                      onChange={(e) =>
+                        handlePermissionChange(menu_id, MenuAccess.WRITE, e.currentTarget.checked)
+                      }
+                    />
                   </div>
-                )
-              )}
+                </div>
+              ))}
               {isClicked && form.values.permissions.length === 0 && (
-                <p className="text-[#fa5252] text-xs !mt-3">
-                  Please select at least one
+                <p className="text-[#fa5252] text-xs mt-3">
+                  Please select at least one permission.
                 </p>
               )}
             </div>
           </div>
         </div>
       </div>
-      <div className="fixed bottom-5 w-[25.5rem] justify-center">
+
+      <div className="fixed bottom-5 w-[25.5rem]">
         <MantineProvider>
           <Button
             type="button"
             color="#5752de"
-            onClick={handleButtonClick}
             fullWidth
+            onClick={() => {
+              setIsClicked(true);
+              handleSubmit(form.values);
+            }}
           >
             {roleId ? "Update Role" : "Add Role"}
           </Button>

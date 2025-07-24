@@ -22,8 +22,7 @@ const RolesList = forwardRef<
   RolesListProps
 >(({}, ref) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [opened, { open: openDrawer, close: closeDrawer }] =
-    useDisclosure(false);
+  const [opened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
   const pageSize = 10;
   const [activePage, setActivePage] = useState<number>(1);
   const [roles, setRoles] = useState<IRole[]>([]);
@@ -34,7 +33,6 @@ const RolesList = forwardRef<
   const rolesListRef = useRef<{ refresh: () => void } | null>(null);
 
   const handleEdit = (roleId: number) => {
-    console.log("Editing Role ID:", roleId);
     openDrawer();
     setRoleId(roleId);
   };
@@ -45,21 +43,6 @@ const RolesList = forwardRef<
     { label: "Actions", key: "actions" },
   ];
 
-  // const rolesList = [
-  //   {
-  //     role_id: 3,
-  //     role_name: "School Admin",
-  //     role_description: "School Admin",
-  //     status: 1,
-  //   },
-  //   {
-  //     role_id: 66,
-  //     role_name: "Teacher",
-  //     role_description: "School Teacher",
-  //     status: 1,
-  //   },
-  // ];
-
   const listRoles = async () => {
     try {
       const payload = {
@@ -69,13 +52,10 @@ const RolesList = forwardRef<
         searchFilter: searchFilter,
       };
       const response = await rolesListService.listRoles(payload);
-      console.log("Fetched Roles:", response?.data?.data?.rolesList);
-
       log(LogLevel.INFO, "RoleList :: listRoles", response);
       if (response?.data?.data) {
         setRoles(response?.data?.data?.rolesList);
         setRolesCount(response.data.data.rolesCount);
-        console.log("set roles:", response.data.data.rolesList);
       }
     } catch (error) {
       log(LogLevel.ERROR, "RoleList :: listRoles", error);
@@ -87,21 +67,9 @@ const RolesList = forwardRef<
     status: RolesStatus
   ) => {
     try {
-      const response = await rolesListService.updateRoleStatus(
-        role_id,
-        status
-      );
+      const response = await rolesListService.updateRoleStatus(role_id, status);
       log(LogLevel.INFO, "RoleList :: handleUpdateRoleStatus", response.data);
       listRoles();
-      // setRoles((prevRoles) => {
-      //   if (status === RolesStatus.DELETED) {
-      //     return prevRoles.filter((role) => role.role_id !== roleId);
-      //   } else {
-      //     return prevRoles.map((role) =>
-      //       role.role_id === roleId ? { ...role, status } : role
-      //     );
-      //   }
-      // });
     } catch (error) {
       log(LogLevel.ERROR, "RoleList :: handleUpdateRoleStatus", error);
     }
@@ -128,7 +96,6 @@ const RolesList = forwardRef<
   };
   const handleClose = () => {
     setRoleId(null);
-    // close();
     rolesListRef.current?.refresh();
   };
 
@@ -176,25 +143,27 @@ const RolesList = forwardRef<
         totalCount={rolesCount}
         renderActions={(row) => (
           <div className="flex space-x-2">
-            <Switch
-              color="#14B584"
-              size="sm"
-              onChange={() =>
-                handleUpdateRoleStatus(
-                  row.role_id,
-                  row.status === RolesStatus.ACTIVE
-                    ? RolesStatus.INACTIVE
-                    : RolesStatus.ACTIVE
-                )
-              }
-              checked={row.status === RolesStatus.ACTIVE}
-            />
-
+            {row.status === RolesStatus.ACTIVE || row.status === RolesStatus.INACTIVE ? (
+              <Switch
+                color="#14B584"
+                size="sm"
+                onChange={() =>
+                  handleUpdateRoleStatus(
+                    row.role_id,
+                    row.status === RolesStatus.ACTIVE
+                      ? RolesStatus.INACTIVE
+                      : RolesStatus.ACTIVE
+                  )
+                }
+                checked={row.status === RolesStatus.ACTIVE}
+              />
+            ) : null}
+            
             <Tooltip label="Edit" withArrow color="#5752de">
               <button
                 onClick={() => {
-                  log(LogLevel.INFO, `Editing role with ID: ${row.roleId}`);
-                  handleEdit(row.roleId);
+                  log(LogLevel.INFO, `Editing role with ID: ${row.role_id}`);
+                  handleEdit(row.role_id);
                 }}
                 className="cursor-pointer"
               >
@@ -204,9 +173,9 @@ const RolesList = forwardRef<
 
             <Tooltip label="Delete" withArrow>
               <button
-                // onClick={() =>
-                //   handleUpdateRoleStatus(row.roleId, RolesStatus.DELETED)
-                // }
+                onClick={() =>
+                  handleUpdateRoleStatus(row.role_id, RolesStatus.DELETED)
+                }
                 className="cursor-pointer"
               >
                 <img src={deleteIcon} alt="Delete" />

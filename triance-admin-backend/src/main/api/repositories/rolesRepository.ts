@@ -31,17 +31,17 @@ const rolesRepository = {
 
     updateRoleStatus: async (
         roleId: number,
-        status: RoleStatus,
+        status: number,
         updatedBy: number
     ): Promise<void> => {
         const logPrefix = `updateRoleStatus :: roleId: ${roleId}, status: ${status}, updatedBy: ${updatedBy}`;
         try {
             const result = await pgClient.executeQuery(
                 pgQueries.RoleQueries.UPDATE_ROLE_STATUS,
-                [status, updatedBy, roleId]
+                [updatedBy, status, roleId]
             );
             logger.debug(`${logPrefix} :: DB result: ${JSON.stringify(result)}`);
-        } catch (error: unknown) {
+        } catch (error: unknown) {  
             if (isError(error)) {
                 logger.error(`${logPrefix} :: Error :: ${error.message}`);
                 throw new Error(error.message);
