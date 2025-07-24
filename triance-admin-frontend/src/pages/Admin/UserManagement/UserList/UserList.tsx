@@ -71,8 +71,8 @@ const UserList = forwardRef<
 
       log(LogLevel.INFO, "UsersList :: handleListUsers cc", response.data);
 
-      setUsers(response.data.data.adminsList); // Update this line
-      setUsersCount(response.data.data.adminsCount); // And this line
+      setUsers(response.data.data.adminsList);
+      setUsersCount(response.data.data.adminsCount); 
     } catch (error) {
       log(LogLevel.ERROR, "UsersList :: handleListUsers", error);
     }

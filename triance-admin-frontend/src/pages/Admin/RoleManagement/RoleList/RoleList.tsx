@@ -22,7 +22,8 @@ const RolesList = forwardRef<
   RolesListProps
 >(({}, ref) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [opened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
+  const [opened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure(false);
   const pageSize = 10;
   const [activePage, setActivePage] = useState<number>(1);
   const [roles, setRoles] = useState<IRole[]>([]);
@@ -33,6 +34,7 @@ const RolesList = forwardRef<
   const rolesListRef = useRef<{ refresh: () => void } | null>(null);
 
   const handleEdit = (roleId: number) => {
+    console.log("Editing Role ID:", roleId);
     openDrawer();
     setRoleId(roleId);
   };
@@ -143,22 +145,32 @@ const RolesList = forwardRef<
         totalCount={rolesCount}
         renderActions={(row) => (
           <div className="flex space-x-2">
-            {row.status === RolesStatus.ACTIVE || row.status === RolesStatus.INACTIVE ? (
+            {[RolesStatus.ACTIVE, RolesStatus.INACTIVE].includes(
+              row.status
+            ) && (
               <Switch
                 color="#14B584"
                 size="sm"
-                onChange={() =>
-                  handleUpdateRoleStatus(
-                    row.role_id,
+                onChange={() => {
+                  const targetStatus =
                     row.status === RolesStatus.ACTIVE
                       ? RolesStatus.INACTIVE
-                      : RolesStatus.ACTIVE
-                  )
-                }
+                      : RolesStatus.ACTIVE;
+
+                  const confirmMsg =
+                    targetStatus === RolesStatus.INACTIVE
+                      ? "Are you sure you want to deactivate this role?"
+                      : "Are you sure you want to activate this role?";
+
+                  if (window.confirm(confirmMsg)) {
+                    handleUpdateRoleStatus(row.role_id, targetStatus);
+                  }
+                }}
                 checked={row.status === RolesStatus.ACTIVE}
               />
-            ) : null}
-            
+            )}
+
+          
             <Tooltip label="Edit" withArrow color="#5752de">
               <button
                 onClick={() => {
@@ -171,11 +183,16 @@ const RolesList = forwardRef<
               </button>
             </Tooltip>
 
+          
             <Tooltip label="Delete" withArrow>
               <button
-                onClick={() =>
-                  handleUpdateRoleStatus(row.role_id, RolesStatus.DELETED)
-                }
+                onClick={() => {
+                  if (
+                    window.confirm("Are you sure you want to delete this role?")
+                  ) {
+                    handleUpdateRoleStatus(row.role_id, RolesStatus.DELETED);
+                  }
+                }}
                 className="cursor-pointer"
               >
                 <img src={deleteIcon} alt="Delete" />

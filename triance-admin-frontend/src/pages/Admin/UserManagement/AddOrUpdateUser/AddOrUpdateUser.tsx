@@ -17,18 +17,18 @@ const AddOrUpdateUser: React.FC<AddOrUpdateUserProps> = ({
   const { log } = useLogger();
   const { showToast } = useToast();
 
-  // Form configuration
+
   const form = useForm({
     initialValues: {
       admin_name: "",
       admin_email: "",
       role_id: "",
-      level: "user" // Default level
+      level: "user" 
     },
     validate: yupResolver(addOrUpdateUserValidation.validateAddOrUpdateUser()),
   });
 
-  // Fetch roles for the dropdown
+
   const listRoles = async () => {
     try {
       const response = await usersListService.listRoles(50, 1, true);
@@ -52,7 +52,7 @@ const AddOrUpdateUser: React.FC<AddOrUpdateUserProps> = ({
     }
   };
 
-  // Fetch user data if in edit mode
+ 
   const handleGetUser = async (admin_id: number) => {
     try {
       const response = await usersListService.getUser(admin_id);
@@ -87,30 +87,30 @@ const handleSubmit = async () => {
     let response;
 
     if (admin_id) {
-      // Update existing user - parameters must match your updateUser API
+ 
       response = await usersListService.updateUser(
-        Number(values.role_id), // convert to number
-        values.admin_name, // string
-        values.admin_email, // string
-        admin_id, // number
-        values.level // string
+        Number(values.role_id), 
+        values.admin_name,
+        values.admin_email, 
+        admin_id, 
+        values.level 
       );
       log(LogLevel.INFO, "User :: Update User", response);
       showToast("User Updated Successfully", "Success", ToastType.SUCCESS);
     } else {
-      // Add new user - parameters must match your addUser API
+      
       response = await usersListService.addUser(
-        values.admin_name, // string
-        values.level, // string - comes first in your API
-        values.admin_email, // string
-        Number(values.role_id) // number
+        values.admin_name, 
+        values.level,
+        values.admin_email, 
+        Number(values.role_id) 
       );
       log(LogLevel.INFO, "User :: Add User", response);
       showToast("User Created Successfully", "Success", ToastType.SUCCESS);
       form.reset();
     }
 
-    handleListUsers(); // Refresh the user list
+    handleListUsers(); 
     setTimeout(() => close(), 1000);
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Error saving user. Please try again.";
