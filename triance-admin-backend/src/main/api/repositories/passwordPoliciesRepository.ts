@@ -93,12 +93,12 @@ const result = await pgClient.executeQuery(query);
         }
     },
 
-  updatePasswordPolicy: async (passwordPolicy: IPasswordPolicy & { _id: string }) => {
+  updatePasswordPolicy: async (passwordPolicy: IPasswordPolicy & { id: string }) => {
     const logPrefix = `passwordPoliciesRepository :: updatePasswordPolicy :: passwordPolicy :: ${JSON.stringify(passwordPolicy)}`;
     try {
       
       const dbData = {
-        id: passwordPolicy._id, 
+        id: passwordPolicy.id, 
         password_expiry: passwordPolicy.password_expiry,
         password_history: passwordPolicy.password_history,
         minimum_password_length: passwordPolicy.minimum_password_length,

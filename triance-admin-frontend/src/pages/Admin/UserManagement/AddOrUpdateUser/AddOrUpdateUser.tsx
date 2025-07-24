@@ -89,10 +89,10 @@ const handleSubmit = async () => {
     if (admin_id) {
       // Update existing user - parameters must match your updateUser API
       response = await usersListService.updateUser(
-        admin_id, // number
+        Number(values.role_id), // convert to number
         values.admin_name, // string
         values.admin_email, // string
-        Number(values.role_id), // convert to number
+        admin_id, // number
         values.level // string
       );
       log(LogLevel.INFO, "User :: Update User", response);

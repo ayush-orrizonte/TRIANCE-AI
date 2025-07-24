@@ -130,12 +130,12 @@ const adminController = {
         return;
       }
 
-      const roleExists = await rolesRepository.existsByRoleId(admin.role_id);
-      if (!roleExists) {
-        logger.warn(`${logPrefix} :: Role not found with ID ${admin.role_id}`);
-        res.status(HttpStatusCodes.BAD_REQUEST).send(ErrorCodes.roles.ROLE00006);
-        return;
-      }
+      // const roleExists = await rolesRepository.existsByRoleId(admin.role_id);
+      // if (!roleExists) {
+      //   logger.warn(`${logPrefix} :: Role not found with ID ${admin.role_id}`);
+      //   res.status(HttpStatusCodes.BAD_REQUEST).send(ErrorCodes.roles.ROLE00006);
+      //   return;
+      // }
 
       const adminExists = await adminRepository.existsByAdminId(admin.admin_id);
       if (!adminExists) {

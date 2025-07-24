@@ -30,7 +30,7 @@ const passwordPoliciesService = {
     }}
     },
   
-  updatePasswordPolicy: async (passwordPolicy: IPasswordPolicy & { _id: string }) => {
+  updatePasswordPolicy: async (passwordPolicy: IPasswordPolicy & { id: string }) => {
     const logPrefix = `passwordPolicyService :: updatePasswordPolicy :: ${JSON.stringify(passwordPolicy)}`;
     try {
       await passwordPoliciesRepository.updatePasswordPolicy(passwordPolicy);

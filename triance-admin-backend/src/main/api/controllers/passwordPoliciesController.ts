@@ -135,7 +135,7 @@ const passwordPoliciesController = {
         }
       */
 
-        const passwordPolicy: IPasswordPolicy & { _id: string } = req.body;
+        const passwordPolicy: IPasswordPolicy & { id: string } = req.body;
       log.debug(`${logPrefix} :: Parsed parameters :: ${JSON.stringify(passwordPolicy)}`);
 
       // const { error } = passwordPoliciesValidations.validateUpdatePasswordPolicy(passwordPolicy);
