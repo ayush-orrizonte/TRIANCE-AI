@@ -15,21 +15,18 @@ function isError(error: unknown): error is Error {
 
 const rolesService = {
     listRoles: async (
-        isActive: boolean,
         pageSize: number,
         currentPage: number,
-        roleId: number,
         searchFilter?: string
     ): Promise<IRole[]> => {
-        const logPrefix = `listRoles :: isActive: ${isActive}, pageSize: ${pageSize}, currentPage: ${currentPage}, roleId: ${roleId}, searchFilter: ${searchFilter}`;
+        const logPrefix = `listRoles : pageSize: ${pageSize}, currentPage: ${currentPage}, searchFilter: ${searchFilter}`;
         try {
             logger.info(logPrefix);
 
             let key = redisKeysFormatter.getFormattedRedisKey(RedisKeys.ROLES_LIST, {
-                isActive: isActive.toString(),
                 pageSize: pageSize.toString(),
                 currentPage: currentPage.toString(),
-                searchFilter: searchFilter || ""
+                searchFilter: searchFilter?.toString() || ""
             });
 
             const cachedResult = await redisUtils.get(key);
@@ -38,22 +35,7 @@ const rolesService = {
                 return JSON.parse(cachedResult);
             }
 
-            let whereClause = 'WHERE ';
-            if (isActive) {
-                whereClause += `status = ${RoleStatus.ACTIVE}`;
-            } else {
-                whereClause += `status IN (${RoleStatus.ACTIVE}, ${RoleStatus.INACTIVE})`;
-            }
-             whereClause += ` AND status NOT IN (${RoleStatus.DELETED}, ${RoleStatus.LOGGED_IN}, ${RoleStatus.LOGGED_OUT})`;
-
-
-            if (searchFilter) {
-                whereClause += ` AND role_name ILIKE '%${searchFilter}%'`;
-            }
-
-            const limitClause = `LIMIT ${pageSize} OFFSET ${currentPage}`;
-
-            const result = await rolesRepository.listRoles(whereClause, limitClause);
+            const result = await rolesRepository.listRoles(pageSize, currentPage, searchFilter);
             logger.debug(`${logPrefix} :: DB result count: ${result.length}`);
 
             if (result.length > 0) {

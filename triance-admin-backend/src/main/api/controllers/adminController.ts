@@ -358,7 +358,7 @@ const adminController = {
 
       const adminsList = await adminService.listAdmins(pageSize, currentPage, searchQuery);
       const adminsCount = await adminService.getAdminsCount(searchQuery);
-
+ 
       logger.info(`${logPrefix} :: Admins listed successfully`);
       res.status(HttpStatusCodes.OK).send({
         data: { adminsList, adminsCount },

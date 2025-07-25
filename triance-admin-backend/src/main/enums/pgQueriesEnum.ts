@@ -19,11 +19,14 @@ export enum AdminQueries {
   invalid_login_attempts, status, role_id, level
 ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING admin_id`,
 
-ADMINS_LIST = `SELECT 
+ADMINS_LIST = `
+SELECT 
   admin_id, admin_name, admin_email, 
   invalid_login_attempts, status, role_id, level 
-FROM m_admin 
-ORDER BY admin_name`,
+  FROM m_admin 
+  WHERE status IN (1, 2,3)
+  ORDER BY admin_name
+  `,
 
 GET_ADMIN_BY_ID = `SELECT 
     admin_id, admin_name, admin_email, 
@@ -62,8 +65,7 @@ RESET_PASSWORD_FOR_ADMIN_ID = `UPDATE m_admin
 SET password = $1
 WHERE admin_id = $2
 RETURNING admin_id`,
-ADMINS_COUNT = `SELECT COUNT(admin_id)
-FROM m_admin`
+ADMINS_COUNT = `SELECT COUNT(admin_id) FROM m_admin WHERE status IN (1, 2, 3)`
 }
 
 export enum MenuQueries {
@@ -87,12 +89,15 @@ export enum PasswordPolicyQueries {
 }
 
 export enum RoleQueries { 
-  LIST_ROLES = "SELECT role_id, role_name, role_description, status from m_roles",
-  LIST_ROLES_COUNT = "SELECT count(*) AS count from m_roles",
+  LIST_ROLES = `SELECT role_id, role_name, role_description, status
+              FROM m_roles
+              WHERE status IN (1, 2)
+              ORDER BY role_name`,
+  LIST_ROLES_COUNT = "SELECT count(*) AS count from m_roles WHERE status IN (1, 2)",
   UPDATE_ROLE = "UPDATE m_roles SET role_name = $2, role_description = $3, level = $4, updated_by = $5, date_updated = NOW() WHERE role_id = $1",
   GET_ROLE = "SELECT role_name, role_description, level, status FROM m_roles WHERE role_id = $1 AND status IN (0, 1)",
   UPDATE_ROLE_STATUS = "UPDATE m_roles SET status = $2, updated_by = $1, date_updated = NOW() WHERE role_id = $3",
-  EXISTS_BY_ROLE_ID = `SELECT EXISTS (SELECT 1 FROM m_roles WHERE role_id = $1 AND status IN (1,2,3,4,5))`,
+  EXISTS_BY_ROLE_ID = `SELECT EXISTS (SELECT 1 FROM m_roles WHERE role_id = $1 AND status IN (1,2))`,
   EXISTS_BY_ROLE_NAME = `SELECT EXISTS (SELECT 1 FROM m_roles WHERE role_name = $1 AND status = 1)`,
   ADD_ROLE = "INSERT INTO m_roles (role_name, role_description, level, status, created_by, updated_by, date_created, date_updated) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING role_id",
   ADD_PERMISSIONS = "INSERT INTO access_control (role_id, menu_id, permission_id, created_by, updated_by) values($1, $2, $3, $4, $4)",

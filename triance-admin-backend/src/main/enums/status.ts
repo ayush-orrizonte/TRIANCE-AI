@@ -4,12 +4,12 @@ export enum MenuStatus {
   DELETED = 2,
 }
 
-export enum AdminStatus {
-  INACTIVE = 1,
-  ACTIVE = 2,
-  LOGGED_IN = 3,
-  LOGGED_OUT = 4,
-  DELETED = 5
+  export enum AdminStatus {
+    INACTIVE = 1,
+    ACTIVE = 2,
+    LOGGED_IN = 3,
+    LOGGED_OUT = 4,
+    DELETED = 5
 }
 
 export enum GridDefaultOptions {
@@ -31,7 +31,5 @@ export enum Levels {
 export enum RoleStatus {
   INACTIVE = 1,
   ACTIVE = 2,
-  LOGGED_IN = 3,
-  LOGGED_OUT = 4,
   DELETED = 5
 }

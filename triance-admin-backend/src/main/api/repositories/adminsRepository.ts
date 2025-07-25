@@ -116,7 +116,7 @@ const adminRepository = {
             if (searchQuery) {
                 query = query.replace(
                     "ORDER BY admin_name", 
-                    `WHERE (admin_name ILIKE $1 OR admin_email ILIKE $1) ORDER BY admin_name`
+                    `AND (admin_name ILIKE $1 OR admin_email ILIKE $1) ORDER BY admin_name`
                 );
                 values.push(`%${searchQuery}%`);
             }
@@ -246,9 +246,12 @@ const adminRepository = {
         const values: any[] = [];
 
         if (searchQuery) {
-            query = query.replace("FROM m_admin", `FROM m_admin WHERE (admin_name ILIKE $1 OR admin_email ILIKE $1)`);
+            query = query.replace(
+                "WHERE status IN (1, 2, 3)",
+                "WHERE status IN (1, 2, 3) AND (admin_name ILIKE $1 OR admin_email ILIKE $1)"
+            );
             values.push(`%${searchQuery}%`);
-        }
+            }
 
         logger.debug(`${logPrefix} :: query :: ${query} :: values :: ${JSON.stringify(values)}`);
         const result = await pgClient.executeQuery<{count: string}>(query, values);
