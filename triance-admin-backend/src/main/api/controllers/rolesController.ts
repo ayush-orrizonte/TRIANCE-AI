@@ -12,54 +12,75 @@ const logger = LoggerUtils.getLogger("rolesController");
 
 const rolesController = {
   listRoles: async (req: Request, res: Response): Promise<void> => {
-    const logPrefix = "listRoles";
+    const logPrefix = `listRoles`;
     try {
       logger.info(`${logPrefix} :: Request received`);
+
       /*
         #swagger.tags = ['Roles']
         #swagger.summary = 'List Roles'
         #swagger.description = 'Endpoint to retrieve Roles List'
         #swagger.parameters['Authorization'] = {
-          in: 'header',
-          required: true,
-          type: 'string',
-          description: 'JWT token for authentication'
+            in: 'header',
+            required: true,
+            type: "string",
+            description: "JWT token for authentication"
         }
         #swagger.parameters['body'] = {
-          in: 'body',
-          required: true,
-          schema: {
-            is_active: true,
-            page_size: 50,
-            current_page: 1,
-            searchFilter: "Admin"
-          }
+            in: 'body',
+            required: true,
+            schema: {
+                isActive: true,
+                pageSize: 50,
+                currentPage: 1,
+                searchFilter: "Admin"
+            }
         }
       */
 
-      const { is_active, page_size, current_page, searchFilter } = req.body;
-      const roleId = req.query.role_id;
-      
+      const plainToken = req.plainToken;
+      const roleId = plainToken?.role_id;
 
-      const pageSize = page_size || 10;
-      const offset = current_page ? (current_page - 1) * pageSize : 0;
-      const isActive = is_active || false;
-      const search = searchFilter || "";
+      let {
+        isActive ,
+        pageSize = 10,
+        currentPage = 1,
+        searchFilter = "",
+      } = req.body;
 
-      const [rolesList, rolesCount] = await Promise.all([
-        rolesService.listRoles(isActive, pageSize, offset, roleId, search),
-        rolesService.listRolesCount(isActive, roleId, search)
-      ]);
+      pageSize = Number(pageSize);
+      currentPage = Number(currentPage)
+
+      logger.debug(
+        `${logPrefix} :: Parsed parameters :: roleId: ${roleId}, isActive: ${isActive}, pageSize: ${pageSize}, currentPage: ${currentPage}, searchFilter: '${searchFilter}'`
+      );
+
+      const rolesList = await rolesService.listRoles(
+        isActive,
+        pageSize,
+        currentPage,
+        searchFilter
+      );
+
+      const rolesCount = await rolesService.listRolesCount(
+        isActive,
+        searchFilter
+      );
+
+      logger.info(`${logPrefix} :: Roles fetched successfully`);
 
       res.status(HttpStatusCodes.OK).send({
-        data: { rolesList, rolesCount },
+        data: {
+          rolesList,
+          rolesCount,
+        },
         message: "Roles Fetched Successfully",
       });
     } catch (error: any) {
-      logger.error(`${logPrefix} :: Error :: ${error.message}`);
-      res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(ErrorCodes.roles.ROLE00000);
-    }
-  },
+          logger.error(`${logPrefix} :: error :: ${error.message} :: ${error}`);
+          res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).send(ErrorCodes.roles.ROLE00000);
+        }
+      },
 
   updateRoleStatus: async (req: Request, res: Response): Promise<void> => {
     const logPrefix = "updateRoleStatus";

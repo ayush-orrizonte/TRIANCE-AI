@@ -89,13 +89,22 @@ export enum PasswordPolicyQueries {
 }
 
 export enum RoleQueries { 
-  LIST_ROLES = `SELECT role_id, role_name, role_description, status
-              FROM m_roles
-              WHERE status IN (1, 2)
-              ORDER BY role_name`,
-  LIST_ROLES_COUNT = "SELECT count(*) AS count from m_roles WHERE status IN (1, 2)",
+  LIST_ROLES = `
+  SELECT role_id, role_name, role_description, status
+FROM m_roles
+WHERE status IN(1,2)
+  AND role_name ILIKE $1
+ORDER BY role_id
+LIMIT $2 OFFSET $3
+`,
+  LIST_ROLES_COUNT = `
+  SELECT count(*) AS count
+  FROM m_roles
+  WHERE status IN (1, 2)
+    AND role_name ILIKE $1
+`,
   UPDATE_ROLE = "UPDATE m_roles SET role_name = $2, role_description = $3, level = $4, updated_by = $5, date_updated = NOW() WHERE role_id = $1",
-  GET_ROLE = "SELECT role_name, role_description, level, status FROM m_roles WHERE role_id = $1 AND status IN (0, 1)",
+  GET_ROLE = "SELECT role_name, role_description, level, status FROM m_roles WHERE role_id = $1 AND status IN ( 1,2)",
   UPDATE_ROLE_STATUS = "UPDATE m_roles SET status = $2, updated_by = $1, date_updated = NOW() WHERE role_id = $3",
   EXISTS_BY_ROLE_ID = `SELECT EXISTS (SELECT 1 FROM m_roles WHERE role_id = $1 AND status IN (1,2))`,
   EXISTS_BY_ROLE_NAME = `SELECT EXISTS (SELECT 1 FROM m_roles WHERE role_name = $1 AND status = 1)`,

@@ -256,37 +256,46 @@ const rolesRepository = {
         }
     },
 
-    listRoles: async (whereClause: string, limitClause: string): Promise<IRole[]> => {
-        const logPrefix = `listRoles :: whereClause: ${whereClause}, limitClause: ${limitClause}`;
-        try {
-            const query = `${pgQueries.RoleQueries.LIST_ROLES} ${whereClause} ${limitClause}`;
-            logger.debug(`${logPrefix} :: Query: ${query}`);
-            const result = await pgClient.executeQuery<IRole>(query);
-            return result;
-        } catch (error: unknown) {
-            if (isError(error)) {
-                logger.error(`${logPrefix} :: Error :: ${error.message}`);
-                throw new Error(error.message);
-            }
-            throw new Error("Unknown error occurred in listRoles");
-        }
-    },
+    listRoles: async (
+    isActive: boolean = true,
+    pageSize: number,
+    currentPage: number,
+    searchFilter: string
+  ): Promise<IRole[]> => {
+    const logPrefix = `rolesRepository :: listRoles`;
+    try {
+      const query = pgQueries.RoleQueries.LIST_ROLES;
+      const values: any[] = [];
 
-    listRolesCount: async (whereClause: string): Promise<number> => {
-        const logPrefix = `listRolesCount :: whereClause: ${whereClause}`;
-        try {
-            const query = `${pgQueries.RoleQueries.LIST_ROLES_COUNT} ${whereClause}`;
-            logger.debug(`${logPrefix} :: Query: ${query}`);
-            const result = await pgClient.executeQuery<{count: string}>(query);
-            return parseInt(result[0]?.count || '0', 10);
-        } catch (error: unknown) {
-            if (isError(error)) {
-                logger.error(`${logPrefix} :: Error :: ${error.message}`);
-                throw new Error(error.message);
-            }
-            throw new Error("Unknown error occurred in listRolesCount");
-        }
+        const search = searchFilter ? `%${searchFilter}%` : "%%";
+        values.push(search);        // $1 = search
+        values.push(pageSize);      // $2 = limit
+        values.push(currentPage);   // $3 = offset
+
+        const result = await pgClient.executeQuery<IRole>(query, values);
+
+      return result;
+    } catch (error) {
+      logger.error(`${logPrefix} :: Error :: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
     }
+  },
+
+  listRolesCount: async (searchFilter: string, isActive :boolean): Promise<number> => {
+    const logPrefix = `rolesRepository :: listRolesCount`;
+    try {
+      const result = await pgClient.executeQuery<{ count: number }>(
+      pgQueries.RoleQueries.LIST_ROLES_COUNT,
+      [`%${searchFilter}%`] // Only one parameter: $1 for ILIKE
+    );
+
+    return result[0]?.count ?? 0;
+
+    } catch (error) {
+      logger.error(`${logPrefix} :: Error :: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  },
 };
 
 export default rolesRepository;

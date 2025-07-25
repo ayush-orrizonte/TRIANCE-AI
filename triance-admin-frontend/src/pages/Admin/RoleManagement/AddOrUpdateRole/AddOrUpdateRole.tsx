@@ -70,6 +70,29 @@ const AddOrUpdateRole: React.FC<AddOrUpdateRoleProps> = ({
     }
   };
 
+  const getRole = async (roleId: number) => {
+    try {
+      const response = await addOrUpdateRoleService.getRole(roleId);
+      log(LogLevel.INFO, "RoleList :: getRole", response.data);
+      if (response.data && response.data.data) {
+        form.setValues({
+          role_name: response.data.data.role_name,
+          role_description: response.data.data.role_description,
+          level: response.data.data.level,
+          permissions: response.data.data.permissions || [],
+        });
+      }
+    } catch (error) {
+      log(LogLevel.ERROR, "RoleList :: getRole", error);
+    }
+  };
+  useEffect(() => {
+    if (roleId) {
+      getRole(roleId);
+    } else {
+      form.reset();
+    }
+  }, [roleId]);
   useEffect(() => {
     const fetchAll = async () => {
       await getDefaultAccessList();
@@ -151,6 +174,7 @@ const AddOrUpdateRole: React.FC<AddOrUpdateRoleProps> = ({
             values.level,
             payload
           );
+        
 
       if (response.status === 200) {
         showToast(

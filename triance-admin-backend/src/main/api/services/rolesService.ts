@@ -15,88 +15,87 @@ function isError(error: unknown): error is Error {
 
 const rolesService = {
     listRoles: async (
+        isActive: boolean,
         pageSize: number,
         currentPage: number,
-        searchFilter?: string
-    ): Promise<IRole[]> => {
-        const logPrefix = `listRoles : pageSize: ${pageSize}, currentPage: ${currentPage}, searchFilter: ${searchFilter}`;
+        searchFilter: string
+      ): Promise<IRole[]> => {
+        const logPrefix = `rolesService :: listRoles`;
         try {
-            logger.info(logPrefix);
-
-            let key = redisKeysFormatter.getFormattedRedisKey(RedisKeys.ROLES_LIST, {
-                pageSize: pageSize.toString(),
-                currentPage: currentPage.toString(),
-                searchFilter: searchFilter?.toString() || ""
-            });
-
-            const cachedResult = await redisUtils.get(key);
-            if (cachedResult) {
-                logger.debug(`${logPrefix} :: Returning cached result`);
-                return JSON.parse(cachedResult);
-            }
-
-            const result = await rolesRepository.listRoles(pageSize, currentPage, searchFilter);
-            logger.debug(`${logPrefix} :: DB result count: ${result.length}`);
-
-            if (result.length > 0) {
-                // redisUtils.set(key, JSON.stringify(result), CacheTTL.MID);
-            }
-
-            return result;
-        } catch (error: unknown) {
-            if (isError(error)) {
-                logger.error(`${logPrefix} :: Error :: ${error.message}`);
-                throw new Error(error.message);
-            }
-            throw new Error("Unknown error occurred in listRoles");
+          const keyParts = [
+            redisKeysFormatter.getFormattedRedisKey(RedisKeys.ROLES_LIST, { pageSize: pageSize.toString(), currentPage: currentPage.toString() }),
+            `active:${isActive}`,
+          ];
+      
+          if (searchFilter) keyParts.push(`search:${searchFilter}`);
+          
+          const key = keyParts.join("|");
+      
+          const cachedResult = await redisUtils.get(key);
+          if (cachedResult) {
+            logger.debug(`${logPrefix} :: Cached result found`);
+            // return JSON.parse(cachedResult);
+          }
+      
+          logger.info(`${logPrefix} :: Fetching roles from DB`);
+          const roles = await rolesRepository.listRoles(
+            isActive,
+            pageSize,
+            currentPage,
+            searchFilter
+            
+          );
+      
+          if (roles?.length > 0) {
+            await redisUtils.set(key, JSON.stringify(roles), CacheTTL.MID);
+          }
+      
+          return roles || [];
+            } catch (error: unknown) {
+        if (isError(error)) {
+          logger.error(`${logPrefix} :: Error :: ${error.message}`);
+          throw new Error(error.message);
         }
+        return []; 
+      }
     },
-
-    listRolesCount: async (
+      
+      listRolesCount: async (
         isActive: boolean,
-        roleId: number,
-        searchFilter?: string
-    ): Promise<number> => {
-        const logPrefix = `listRolesCount :: isActive: ${isActive}, roleId: ${roleId}, searchFilter: ${searchFilter}`;
+        searchFilter: string
+      ): Promise<number> => {
+        const logPrefix = `rolesService :: listRolesCount`;
         try {
-            logger.info(logPrefix);
-
-            let key = redisKeysFormatter.getFormattedRedisKey(RedisKeys.ROLES_COUNT, {
-                isActive: isActive.toString(),
-                searchFilter: searchFilter || ""
-            });
-
-            const cachedResult = await redisUtils.get(key);
-            if (cachedResult) {
-                logger.debug(`${logPrefix} :: Returning cached result`);
-                return parseInt(cachedResult);
-            }
-
-            let whereClause = 'WHERE status';
-            if (isActive) {
-                whereClause += ` = ${RoleStatus.ACTIVE}`;
-            } else {
-                whereClause += ` IN (${RoleStatus.ACTIVE}, ${RoleStatus.INACTIVE})`;
-            }
-
-            if (searchFilter) {
-                whereClause += ` AND role_name ILIKE '%${searchFilter}%'`;
-            }
-
-            const count = await rolesRepository.listRolesCount(whereClause);
-            logger.debug(`${logPrefix} :: DB result count: ${count}`);
-
-            // redisUtils.set(key, count.toString(), CacheTTL.MID);
-
-            return count;
-        } catch (error: unknown) {
-            if (isError(error)) {
-                logger.error(`${logPrefix} :: Error :: ${error.message}`);
-                throw new Error(error.message);
-            }
-            throw new Error("Unknown error occurred in listRolesCount");
+          const keyParts = [
+            RedisKeys.ROLES_COUNT,
+            `active:${isActive}`
+          ];
+      
+          if (searchFilter) keyParts.push(`search:${searchFilter}`);
+      
+          const key = keyParts.join("|");
+      
+          const cachedResult = await redisUtils.get(key);
+          if (cachedResult) {
+            logger.debug(`${logPrefix} :: Cached count found`);
+            return parseInt(cachedResult, 10);
+          }
+      
+          logger.info(`${logPrefix} :: Counting roles from DB`);
+          const count = await rolesRepository.listRolesCount(searchFilter,isActive );
+      
+          await redisUtils.set(key, count.toString(), CacheTTL.MID);
+      
+          return count;
+           } catch (error: unknown) {
+          if (isError(error)) {
+            logger.error(`${logPrefix} :: Error :: ${error.message}`);
+            throw new Error(error.message);
+          }
+          
+          return 0;
         }
-    },
+      },
 
     updateRoleStatus: async (
         roleId: number,
